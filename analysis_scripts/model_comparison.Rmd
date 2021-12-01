@@ -1,0 +1,393 @@
+---
+title: "BST 222 Project"
+author: "Zachary Clement"
+date: "11/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(future.apply)
+library(knitr)
+library(dplyr)
+```
+
+```{r function_def, echo = F}
+
+generate_data <- function(beta_list, # a numeric vector of beta coefficients
+                          num_obs, ## number of observations in the output matrix
+                          num_underlying_factors = 0, #number of underlying factors (0 is no multicollinearity)
+                          covariates_per_factor = 0, #covariates per underlying factor
+                          strength_collinearity = 0 #between 0 and 1, 1 is perfect collinearity
+                          
+                          ){
+  ## Takes a list of beta coefficients and returns a matrix satisfying those constraints
+
+  
+  xi_sd <- replicate(n =length(beta_list) - 1, rnorm(num_obs)) %>% as.matrix()
+  if(num_underlying_factors > 0 && covariates_per_factor > 1 && strength_collinearity > 0){
+    k <- 2
+    for (i in 1:num_underlying_factors){
+      current_factor <- rnorm(num_obs)
+      new_k <- k + covariates_per_factor
+      if (new_k > ncol(xi_sd)){
+        k <- 3 #we've already gone around once so we might as well mix up some of the collinearity groups
+        new_k <- k + covariates_per_factor
+      }
+      
+      
+      current_to_add <- k:new_k
+      for (j in current_to_add){
+        xi_sd[,j] <- (xi_sd[,j]*(1 - strength_collinearity) + current_factor*strength_collinearity ) |> scale() #weight them and then normalize back to have a sd of 1. We will be dividing 
+      }
+    }
+  }
+  x = cbind(rep(1, num_obs), xi_sd)
+  y = beta_list %*% as.matrix(t(x)) + rnorm(num_obs) # create matrix with TRUE Y
+  
+  mat_to_fit <- cbind(y = t(y), xi_sd) 
+  return(mat_to_fit)
+}
+
+
+
+
+
+model_fit <- function(beta_list, num_obs) {
+  mat_to_fit <- generate_data(beta_list, num_obs)
+  
+  current_lm <- lm(mat_to_fit[,1] ~ mat_to_fit[,2:ncol(mat_to_fit)])
+  
+  lambda_lasso <- glmnet::cv.glmnet(y = mat_to_fit[,1], 
+                                    nfolds = 5, #so it will be ok when we use on small samples
+                                x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                family = "gaussian",
+                                alpha = 1 #lasso penalty (0 is ridge)
+  ) %>% 
+    .$lambda.min
+  
+  lambda_elastic <- glmnet::cv.glmnet(y = mat_to_fit[,1], 
+                                    x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                    nfolds = 5,
+                                    family = "gaussian",
+                                    alpha = .5 #lasso penalty (0 is ridge)
+  ) %>% 
+    .$lambda.min
+  
+  
+  lambda_ridge <- glmnet::cv.glmnet(y = mat_to_fit[,1], 
+                                    x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                    nfolds = 5,
+                                    family = "gaussian",
+                                    alpha = 0 #ridge penalty
+  ) %>% 
+    .$lambda.min
+  
+  current_lasso <- glmnet::glmnet(y = mat_to_fit[,1], 
+                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                  family = "gaussian",
+                                  alpha = 1, #1 is lasso penalty (0 is ridge)
+                                  lambda = lambda_lasso
+                                  )
+  
+  current_ridge <- glmnet::glmnet(y = mat_to_fit[,1], 
+                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                  family = "gaussian",
+                                  alpha = 0, #0 is ridge
+                                  lambda = lambda_ridge
+                              
+  )
+  
+  current_elastic <- glmnet::glmnet(y = mat_to_fit[,1], 
+                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                  family = "gaussian",
+                                  alpha = .5, #0 is ridge
+                                  lambda = lambda_elastic)
+  
+  return_vector <- c()
+  
+  p <- length(beta_list - 1)
+  y <- y %>% as.vector() #so we can do sums of that and our predictions
+  for (mod in list(current_lasso, current_ridge,current_elastic)){
+    current_preds <- predict(mod, mat_to_fit[,2:ncol(mat_to_fit)] ) %>% as.vector()
+    current_bias <- mean(current_preds - y)
+    current_var <- var(current_preds)
+    current_mse <- sum((current_preds - y)^2) / (num_obs - p - 1)
+    return_vector <- c(return_vector, as.vector(coef(mod)), current_bias, current_var, current_mse)
+  }
+  
+  ## for lm
+  current_preds <- predict(current_lm, mat_to_fit[,2:ncol(mat_to_fit)] %>% data.frame() ) %>% as.vector()
+  current_bias <- mean(current_preds - y)
+  current_var <- var(current_preds)
+  current_mse <- sum((current_preds - y)^2) / (num_obs - p - 1)
+  return_vector <- c(return_vector, as.vector(coef(current_lm)), current_bias, current_var, current_mse)
+  
+  highest_beta <- (length(beta_list) - 1)
+  
+  names(return_vector) <- c(paste("LASSO", 0:highest_beta, sep = '_'),
+                            paste("LASSO", c("bias", "variance", "mse"), sep = '_'),
+                            paste("Ridge", 0:highest_beta, sep = '_'),
+                            paste("Ridge", c("bias", "variance", "mse"), sep = '_'),
+                            paste("Elastic", 0:highest_beta, sep = '_'),
+                            paste("Elastic", c("bias", "variance", "mse"), sep = '_'),
+                            paste("Unpenalized", 0:highest_beta, sep = '_'),
+                            paste("Unpenalized", c("bias", "variance", "mse"), sep = '_')
+                            )
+  
+  return(return_vector)
+}
+
+
+
+format_df <- function(input_df){
+  ## takes a dataframe returned by replicating model_fit and transforms it so
+  ## there is one row per estimate 
+  data <- input_df %>% 
+    mutate(sim_number = 1:nrow(input_df)) %>% #we have to do this to get pivots to recognize unique rows
+    tidyr::pivot_longer(cols = colnames(input_df), names_to = "Estimate", values_to = "Value") %>% 
+    separate(col = "Estimate", into = c("Model", "Beta")) %>%
+    unite(col = Model_iter, Model, sim_number, sep = "_") %>%
+    pivot_wider(names_from = "Beta", values_from = "Value", names_prefix = "Beta_") %>%
+    separate(col = Model_iter, into = c("Model", "Simulation")) %>%
+    data.frame() %>% 
+    rename(bias = Beta_bias, variance = Beta_variance , mse = Beta_mse )
+  return(data)
+}
+
+
+beta_boxplots <- function(input_df, format_data = F, beta_num, beta_list, legend = T){ 
+  #' Creates a boxplot using each 
+  #' input_df: the dataframe (either returned by replicating model_fit or format_df)
+  #' format_data: a logical indicating whether input_df needs to be formatted
+  #' beta_num: the beta coefficient you want boxplots of
+  #' beta_list: the list of beta coefficients
+  #' legend: a logical indicating whether we need to include a legend in this plot
+  
+  if(!format_data){
+    data <- input_df
+  }
+  else{
+    data <- format_df(input_df)
+  }
+  
+  my_list <- data[,paste('Beta', beta_num, sep = "_")]
+  truth <- beta_list[beta_num + 1] #we want beta_0 to be the intercept
+  
+  p <- ggplot(data = data, mapping = aes(col = Model, y = my_list)) + 
+    geom_boxplot() +
+    geom_hline(aes(yintercept = truth), col = "blue") +
+    labs(y = "", title = paste('Beta', beta_num, sep = "_")) + 
+    scale_x_continuous(breaks = c())
+  
+  if(!legend){
+    p <- p + theme(legend.position = "none")
+  }
+    return(p)
+    
+}
+
+
+
+plot_all_beta <- function(input_df, beta_list, ncol = 4){
+  #' a function taking a dataframe (returned by replicating model_fit) which returns boxplots
+  #' input_df: a dataframe created by replicating model_fit
+  #' beta_list: the list of true beta coefficients
+  #' ncol: the desired number of columns in the resulting plot.
+  df <- format_df(input_df)
+  
+  
+  beta_plots <- list()
+  for (i in 0:(length(beta_list) - 1)){
+    beta_plots[[i + 1]] <- beta_boxplots(input_df = df, format_data = F, beta_num = i, beta_list = beta_list, legend = F)
+    beta_plots[[i + 1]]
+  }
+  beta_plots[[length(beta_list) + 1]] <- beta_boxplots(input_df = df, format_data = F, beta_num = i, beta_list = beta_list, legend = T) %>%  
+    ggpubr::get_legend() %>% 
+    as_ggplot()
+    
+  egg::ggarrange(plots = beta_plots, ncol = ncol)
+  
+}
+```
+
+First, we will consider a model with true beta coefficients that are mostly zero. 
+
+
+```{r}
+##This is where you change parameters
+
+n_reps <- 500
+beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
+num_obs <- 300
+
+
+##These lines may cause errors on your machine, see below if they don't work
+future::plan(multisession, workers = parallel::detectCores()) 
+df <- future.apply::future_replicate(n_reps, model_fit(beta_list, num_obs)) %>% t() %>% data.frame()
+future::plan(sequential) #I think this should reset your R session because we don't need to parallel process anything else
+
+#The commented line below will do the same thing as the above two lines, but slower. 
+# df <- replicate(n_reps, model_fit(beta_list, num_obs)) %>% t() %>% data.frame()
+
+
+plot_all_beta(df, beta_list)
+
+```
+
+We can see from the boxplots of the beta coefficients that LASSO, Ridge, and elastic net tend to underestimate the true parameter, while the unpenalized model is unbiased. However, when parameters are zero, the spread of elastic net and LASSO estimates is much smaller. 
+
+```{r}
+fdf <- format_df(df)
+
+fdf %>% 
+  #mutate(is_zero = (beta_list[beta_num + 1] == 0)) %>% 
+ group_by(Model) %>% dplyr::summarise(across(c("mse"), median)) %>% kable(caption = "Median Mean Squared Error values under various estimation procedures")
+
+```
+The mean squared errors for predictions of elastic net, ridge, and LASSO regression are all smaller than the mean squared error for unpenalized regression. This means that the bias-variance trade-off is working for LASSO and Ridge regression in this situation. 
+
+```{r}
+means <- fdf %>%
+  select(-c("bias", "variance", "mse", "Simulation")) %>% 
+  group_by(Model) %>%
+  dplyr::summarise(across(everything(), .fns = mean, na.rm= TRUE)) 
+
+
+# beta_vars <- fdf %>%
+#   group_by(Model) %>%
+#   select(-c("bias", "variance", "mse", "Simulation")) %>% 
+#   dplyr::summarise(across(everything(), .fns = var, na.rm= TRUE)) 
+
+beta_vars <- fdf %>%
+  group_by(Model) %>%
+  select(-c("bias", "variance", "mse", "Simulation")) %>% 
+  dplyr::summarise(across(everything(), 
+                   .fns = ~ sum((.x-mean(.x))^2)/length(.x) ) ) # We're not using the estimate of population variance here, I believe
+
+
+beta_bias <- sapply(1:nrow(means), function(x){
+  unlist(means[x,-1]) - beta_list}) %>%   
+  t() %>%  
+  cbind(means[,1], . )
+
+beta_mse <- sapply(1:nrow(means), function(x){
+  beta_bias[x, -1]^2 + beta_vars[x, -1]
+  }) %>% 
+  t() %>%  
+  cbind(means[,1], . ) 
+
+beta_mse %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta_num", 
+                     values_to = "value") %>% 
+  separate(beta_num, into = c("junk", "beta_num")) %>% 
+  mutate(beta_num = as.numeric(beta_num)) %>% 
+  mutate(short_model = substr(Model, start = 1, stop = 2)) %>% 
+    arrange(beta_num) %>% 
+  mutate(is_zero = (beta_list[beta_num + 1] == 0)) %>% 
+  ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
+  facet_wrap(vars(beta_num), scales = "free") +
+  labs(title = "Mean Squared Error of Regression Coefficient", x = '', y = '', fill = "Is Zero")
+
+```
+
+When evaluating the mean squared error of our estimates of regression coefficients, Elastic Net and LASSO regression tend to have lower MSE for coefficients when they are equal to zero. 
+
+```{R}
+
+
+beta_vars %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta_num", 
+                     values_to = "value") %>% 
+  separate(beta_num, into = c("junk", "beta_num")) %>% 
+  mutate(beta_num = as.numeric(beta_num)) %>% 
+  mutate(short_model = substr(Model, start = 1, stop = 2)) %>% 
+  arrange(beta_num) %>% 
+  mutate(is_zero = (beta_list[beta_num + 1] == 0)) %>% 
+  ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
+  facet_wrap(vars(beta_num), scales = "free") + 
+  labs(x = '', y = '', title = "Variance of Estimators", fill = "Is Zero")
+
+
+```
+
+The variance in estimates is also much lower for Elastic Net and LASSO regression for zero coefficients, but is comparable to unpenalized regression for non-zero coefficients. 
+
+
+```{r}
+rm(full_df)
+
+beta_list <- c(2, -1.2, -.7, -.1, .2, .5, 1,0, 0, 0, 0, 0, 0, 0)
+
+for (i in 1:10){
+
+  mat_to_fit <- generate_data(beta_list = beta_list, num_obs = 1000, num_underlying_factors = 1, covariates_per_factor = 4, strength_collinearity = .9)
+  
+  
+  current_lasso <- glmnet::glmnet(y = mat_to_fit[,1], 
+                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
+                                  family = "gaussian",
+                                  alpha = 1 #1 is lasso penalty (0 is ridge)
+                                  )
+  
+  current_df <- current_lasso$beta %>% 
+    t() %>% 
+    as.matrix() %>% 
+    data.frame() %>% 
+    cbind(data.frame(lambda = current_lasso$lambda)) %>% 
+    pivot_longer(., cols = colnames(.)[colnames(.) != "lambda"])
+  
+  current_df$iter = paste(i, current_df$name)
+  
+  if (exists("full_df")){
+    full_df <- rbind(full_df, current_df)
+  }
+  else{
+    full_df <- current_df
+  }
+}
+
+
+  ggplot(data = full_df) +  geom_line(mapping = aes(x = lambda, y = value,group = iter, col = name 
+                                                     ), alpha = .5)
+  
+```
+
+
+
+Now, let's see how these models perform under different conditions. We will evaluate the prediction MSE for each model under different levels of sparsity (.2, .5, and .8), and at different sample sizes (20, 100, 500). We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
+
+```{r, eval = F}
+df <- read.csv('aggregate_mse_data.csv')
+
+
+df2 <- df %>% pivot_longer(cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"), 
+                           values_to = "MSE", 
+                           names_to = "Model") %>% 
+  dplyr::rename(Small = prop_small )
+ 
+ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
+  geom_boxplot() +
+  facet_grid(rows = vars(Small), cols = vars(sparsity), labeller = label_both) +
+  labs(x = "Number of Observations")
+
+
+
+
+```
+
+
+Other things to test:
+1. n > p
+2. pairwise correlations are very high
+
+
+
+
+
+
+
+
+
