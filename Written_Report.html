@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Dan Nolte" />
+<meta name="author" content="Zach Clement, Nona" />
 
 <meta name="date" content="2021-11-30" />
 
@@ -166,7 +166,7 @@ pre code {
 
 
 <h1 class="title toc-ignore">BST 222 Final Reoprt</h1>
-<h4 class="author">Dan Nolte</h4>
+<h4 class="author">Zach Clement, Nona</h4>
 <h4 class="date">11/30/2021</h4>
 
 </div>
@@ -213,6 +213,10 @@ pre code {
 </div>
 <div id="results" class="section level3">
 <h3>Results</h3>
+<p>n_reps &lt;- 500 beta_list &lt;- c(2, 1, .5, -.5, 0, 0, 0, 0, 0, 0, 0) num_obs &lt;- 300</p>
+<p>##These lines may cause errors on your machine, see below if they don’t work future::plan(multisession, workers = parallel::detectCores()) df &lt;- future.apply::future_replicate(n_reps, model_fit(beta_list, num_obs)) %&gt;% t() %&gt;% data.frame() future::plan(sequential) #I think this should reset your R session because we don’t need to parallel process anything else</p>
+<p>#The commented line below will do the same thing as the above two lines, but slower. # df &lt;- replicate(n_reps, model_fit(beta_list, num_obs)) %&gt;% t() %&gt;% data.frame()</p>
+<p>plot_all_beta(df, beta_list)</p>
 </div>
 <div id="summaryconclusion" class="section level3">
 <h3>Summary/Conclusion</h3>

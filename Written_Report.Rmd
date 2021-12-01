@@ -1,6 +1,6 @@
 ---
 title: "BST 222 Final Reoprt"
-author: "Dan Nolte"
+author: "Zach Clement, Nona"
 date: "11/30/2021"
 output: html_document
 ---
@@ -49,7 +49,26 @@ In other words, the ordinary least squares method chooses estimates so that the 
 
 
 ### Results
+```{r}
+library(plyr)
+library(dplyr)
+n_reps <- 500
+beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
+num_obs <- 300
 
+
+##These lines may cause errors on your machine, see below if they don't work
+future::plan(multisession, workers = parallel::detectCores()) 
+df <- future.apply::future_replicate(n_reps, model_fit(beta_list, num_obs)) %>% t() %>% data.frame()
+future::plan(sequential) #I think this should reset your R session because we don't need to parallel process anything else
+
+#The commented line below will do the same thing as the above two lines, but slower. 
+# df <- replicate(n_reps, model_fit(beta_list, num_obs)) %>% t() %>% data.frame()
+
+
+plot_all_beta(df, beta_list)
+
+```
 
 ### Summary/Conclusion
 
