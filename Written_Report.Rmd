@@ -32,15 +32,34 @@ We will now present the main statistical methods that were utilized in our inves
 - Elastic-Net
 
 #### Ordinary Least Squares
-Ordinary Least Squares, or OLS, is a method in linear regression that chooses parameters of a linear model based on a set of explanatory variables based on the principle of least squares. The Least Squares Estimation process is based on the process of minimizing the distance between the actual data responses and the fitted values/residuals of the estimated linear regression line. The line produced by the method of least squares is shown below:
+Ordinary Least Squares, or OLS, is a method in linear regression that estimates parameters of a linear model based on a set of explanatory variables based on the principle of least squares. A model with p explanatory variables would be modeled as such:
 
-In other words, the ordinary least squares method chooses estimates so that the regression model deviates the least from the data, with no penalty term. From the least square estimates we can then find variance
+$Y = \beta_{0} + \sum_{j=1}^{p} \beta_{j}X_{j} + \epsilon$
+
+Where Y is the dependent variable, $\beta_0$ is the intercept, $X_{j}$ is the jth explanatory variable and $\epsilon$ is the random error term. 
+
+Least squares, also known as the minimum square error (SSE), goes about an estimation process that is based on minimizing the sum of square distances between the true data responses and the predicted values. That is, we minimize the *residuals*, which can be defined as $Y_{i} - \hat{Y}_i = e_{i}$. In order to accomplish this goal, the method of least squares produces a line such that 
+
+$Y_{i} - \hat{Y}_{i} = Y_{i} - (\hat{\beta}_{0} + \hat{B}_{1}X_{i}) = e_{i}$
+
+is minimized over all observations by summing up all the squares of the residuals such that the sum $e^{2}_{1} + e^{2}_{2} + \dots + e^{2}_{n}$ is minimized. 
+
+
+In other words, the ordinary least squares method chooses estimates so that the regression model deviates the least from the data, with no penalty term. 
+
+**Things to note:**
+The outputs of regression for the OLS estimator are unbiased estimators of the different $\beta$ terms. According to the Guass-Markov Theorem, each of the $\hat{\beta}$ variables are unbiased and have minimum variance among all unbiased linear estimators for $\beta$. However this estimator will work best with data with no sparsity and large $\beta$ terms. When we look towards models with more sparsity, OLS may not be the best method to use. 
+
+
 
 #### LASSO
+Works better with more zero's
 
 #### Ridge Regression
+Works better with a lot of small beta's (0.01 - 0.05)
 
 #### Elastic Net
+Works better with medium sparsity
 
 
 ### Metrics
@@ -71,4 +90,11 @@ plot_all_beta(df, beta_list)
 ```
 
 ### Summary/Conclusion
+
+
+
+### Refrences
+
+https://www.xlstat.com/en/solutions/features/ordinary-least-squares-regression-ols
+Dr. Lake Slides
 
