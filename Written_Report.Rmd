@@ -34,6 +34,7 @@ With the motivation given, we will now turn attention to our underlying research
 
 ### 2) Methods
 
+#### 2a) Models
 We will now present the main statistical methods that were utilized in our investigation. In order to examine the effects of sparsity in linear models, we looked at four distinct model methods that deal with sparsity in different ways. These four methods are: 
 
 - Ordinary Least Squares
@@ -41,7 +42,7 @@ We will now present the main statistical methods that were utilized in our inves
 - Ridge Regression
 - Elastic-Net
 
-#### Ordinary Least Squares
+##### Ordinary Least Squares
 Ordinary Least Squares, or OLS, is a method in linear regression that chooses parameters of a linear model based on a set of explanatory variables based on the principle of least squares. The Least Squares Estimation process is based on the process of minimizing the distance between the actual data responses and the fitted values/residuals of the estimated linear regression line. The line produced by the method of least squares is shown below:
 Ordinary Least Squares, or OLS, is a method in linear regression that estimates parameters of a linear model based on a set of explanatory variables based on the principle of least squares. A model with p explanatory variables would be modeled as such:
 
@@ -63,18 +64,19 @@ The outputs of regression for the OLS estimator are unbiased estimators of the d
 
 In other words, the ordinary least squares method chooses estimates so that the regression model deviates the least from the data, with no penalty term. From the least square estimates we can then find variance
 
-#### LASSO
+##### LASSO
 Works better with more zero's
 
-#### Ridge Regression
+##### Ridge Regression
 Works better with a lot of small beta's (0.01 - 0.05)
 
-#### Elastic Net
+##### Elastic Net
 Works better with medium sparsity
 
-#### 2a) Metrics
+#### 2b) Metrics
+Out of sample MSE. 
 
-#### 2b) Design of Simulation Study
+#### 2c) Design of Simulation Study
 
 As discussed above, through this study we were interested in demonstrating the superiority of LASSO regression in those contexts with a high level of sparsity. We then consider other contexts where Ridge Regression, Elastic Net, and OLS are expected to outperform LASSO, and test our hypotheses using simulations. 
 
@@ -416,8 +418,9 @@ beta_vars %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "bet
   labs(x = '', y = '', title = "Variance of Estimators", fill = "Is Zero")
 ```
 
-
 The variance in estimates is also much lower for Elastic Net and LASSO regression for zero coefficients, but is comparable to unpenalized regression for non-zero coefficients. 
+
+TODO: Expand and show results for different levels of sparsity, sample size, and true coefficient size. Also show results with varying levels of lambda. 
 
 ### 4) Summary/Conclusion
 
@@ -425,5 +428,7 @@ The variance in estimates is also much lower for Elastic Net and LASSO regressio
 
 - https://www.xlstat.com/en/solutions/features/ordinary-least-squares-regression-ols
 - Dr. Lake Slides
+- Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. J. R. Statist. Soc. B, 58, 267–288.
+- Zou, H., Hastie, T. (2005). Regularization and variable selection via the elastic net. J. R. Statist. Soc. B, 67(2), 301–320.
 
 
