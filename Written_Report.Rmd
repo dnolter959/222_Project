@@ -74,7 +74,7 @@ Works better with a lot of small beta's (0.01 - 0.05)
 Works better with medium sparsity
 
 #### 2b) Metrics
-I wrote this below in the results section but it might be better suited for here. - Dan.)
+[I wrote this below in the results section but it might be better suited for here. - Dan.]
 
 Out of Sample MSE:
 To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the test data and *modeled coefficients* from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
@@ -85,7 +85,7 @@ To calculate out-of-sample MSE, we take each model fit and compare true $Y$ valu
 As discussed above, through this study we were interested in demonstrating the superiority of LASSO regression in those contexts with a high level of sparsity. We then consider other contexts where Ridge Regression, Elastic Net, and OLS are expected to outperform LASSO, and test our hypotheses using simulations. 
 
 ##### Step 1: Simulation set up and data generation
-We would like to predict Y given a set of 10 covariates using the linear model below. 
+We begin with a basic We would like to predict Y given a set of 10 covariates using the linear model below. 
 
 ${Y} = {\beta}_0 + {\beta}_1 x_1 + {\beta}_2 x_2 + ... + ... +{\beta}_{10} x_{10}$
 
@@ -120,9 +120,9 @@ data
 ```
 
 **Step 2: Simulations Details**
-Once we have our dataset of predictors $X_i$ and outcome $Y$, what remains is to run our four regression models of interest on this dataset to retrieve point estimates for the 11 $\beta$ coefficients. After running each of the models, we are interested in examining (1) the proximity of the estimated coefficients to their true underlying values in each case, as well as (2) the proximity of the predicted $\hat{Y}$ values to their true $Y$, measured in Mean Squared Error. 
+Once we had our dataset of predictors $X_i$ and outcome $Y$, what remains is to run our four regression models of interest on this dataset to retrieve point estimates for the 11 $\beta$ coefficients. After running each of the models, we are interested in examining (1) the proximity of the estimated coefficients to their true underlying values in each case, as well as (2) the proximity of the predicted $\hat{Y}$ values to their true $Y$, measured in Mean Squared Error. 
 
-Further, we are interested in repeating this experiment many times (we chose 500) and examining the variance of the distributions of the coefficient point estimates.
+Further, we are interested in repeating this experiment many (500) times and examining the variance of the distributions of the coefficient point estimates.
 
 As for the details of our regression models, I'll consider them in two categories: (1) the un-penalized model (OLS), and (2) the penalization models (Ridge, LASSO, Elastic Net)   
 
@@ -144,7 +144,7 @@ lambda = 0.6
 ```{r, results="hide"}
 glmnet(y = data$Y, x = data[,2:ncol(data)], family = "gaussian", alpha = alpha, lambda = lambda)
 ```
-Where we set alpha equal to 0, 0.5, and 1 for Ridge, Elastic Net, and LASSO, respectively. For selecting the lambda level, we first ran each model with no lambda parameter and used cross validation to select the lambda level associated with the lowest MSE in each case. Then we fit each penalization model with this lambda value.  
+Where we set alpha equal to 0, 0.5, and 1 for Ridge, Elastic Net, and LASSO, respectively. For selecting the lambda level, we first ran each model with no lambda parameter and used 5-fold cross validation to select the lambda level associated with the lowest MSE in each case. Then we fit each penalization model with this lambda value.
 
 ### 3) Results
 ```{r, echo = FALSE}
@@ -346,9 +346,9 @@ plot_all_beta <- function(input_df, beta_list, ncol = 4){
 }
 ```
 
-Here are a series of boxplots which show the distribution of point estimates for each of the 11 $\beta$ parameters. Recall that for the simulation study we set $\beta_0 = 2$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\beta_3 = -0.5$, and $\beta_4 = \beta_5 = ... = \beta_9 = \beta_{10} = 0$.
+Here are a series of boxplots which show the distribution of point estimates for each of the 11 $\beta$ parameters. Recall that for the simulation study we set $\beta_0 = 2$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\beta_3 = -0.5$, and $\beta_4 = \beta_5 = ... = \beta_9 = \beta_{10} = 0$. In this setting we set n = 300, and run each model 500 times. 
 
-```{r}
+```{r, echo=FALSE}
 # Set Parameters
 n_reps <- 500
 beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
@@ -426,9 +426,7 @@ The variance in estimates is also much lower for Elastic Net and LASSO regressio
 
 We've now reviewed the estimates of the *beta coefficients* relative to their true underlying values. A similar but related question we'd like to answer is how well each model performs at predicting the true underlying *Y values*. In order to do this, we compare models using **out-of-sample MSE** (described above). 
 
-To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the test data and *modeled coefficients* from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
-
-Now, let's see how these models perform under different conditions. We will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
+To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the **test data** and **modeled coefficients** from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison.
 
 ```{r, echo = FALSE}
 df <- read.csv('aggregate_mse_data.csv')
@@ -439,6 +437,20 @@ df2 <- df %>% pivot_longer(cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"),
                            names_to = "Model") %>% 
   dplyr::rename(Small = prop_small )
 ```
+
+```{r, echo=FALSE}
+
+df3 = df2 %>% filter(num_obs == 200, sparsity == 0.5, Small == 0)
+ggplot(df3, mapping = aes(col = Model, x = 0, y = log(MSE))) + 
+  geom_boxplot() +
+  theme(axis.title.x=element_blank(),
+      axis.text.x=element_blank(),
+      axis.ticks.x=element_blank())
+```
+It is clear that in this setting of relatively high sparsity Elastic Net and LASSO outperform Ridge and un-penalized OLS in terms of out-of-sample MSE. 
+
+Now, let's see how these models perform under different conditions. We will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
+
 
 ```{r, echo=FALSE}
 ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
@@ -470,7 +482,7 @@ ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) +
   labs(x = "Number of Observations")
 ```
 
-As stated in the simulation design portion above, in order to fit our penalization models, we simply used cross validation to select the lambda value associated with the smallest MSE, and then used this lambda value in our final regression fit. A related consideration is to examine results for different levels of `lambda` in LASSO regression, and observe sensitivity of results for this varying levels of lambda.  [Explain what's happening]
+As stated in the simulation design portion above, in order to fit our penalization models, we simply used cross validation to select the lambda value associated with the smallest MSE, and then used this lambda value in our final regression fit. A related consideration is to examine results for different levels of `lambda` in LASSO regression, and observe sensitivity of results for this varying levels of lambda.
 
 ```{r, echo = FALSE, message = FALSE}
 rm(full_df)
@@ -511,7 +523,7 @@ for (i in 1:10){
 
 ```
 
-[As you can see, ...]
+As you can see, as the value of lambda increases, as does the penalty applied to the beta coefficients, and for a sufficiently large value of lambda (in this case, about 1.25), all $\beta$ coefficients are sent to 0. Our modeling process selects the level of lamda using 5-fold cross validation such that the out-of-sample MSE (i.e., the MSE in the test sets of the cross validation) is minimized; ideally, this level of lambda will be one where all truly 0 $\beta$ coefficients are sent to 0 and non-zero ones are not.   
 
 ### 4) Summary/Conclusion
 
