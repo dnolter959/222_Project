@@ -59,6 +59,7 @@ generate_data <- function(beta_list, # a numeric vector of beta coefficients
 
 model_fit <- function(beta_list, num_obs) {
   mat_to_fit <- generate_data(beta_list, num_obs)
+  y <- mat_to_fit[,1]
   
   current_lm <- lm(mat_to_fit[,1] ~ mat_to_fit[,2:ncol(mat_to_fit)])
   current_lm <- lm(mat_to_fit[,1] ~ mat_to_fit[,2:ncol(mat_to_fit)])
@@ -310,6 +311,30 @@ beta_vars %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "bet
 
 The variance in estimates is also much lower for Elastic Net and LASSO regression for zero coefficients, but is comparable to unpenalized regression for non-zero coefficients. 
 
+
+
+Here, we will get the out-of-sample MSE for our original example:
+
+```{r}
+source('get_mse.R')
+
+future::plan("multisession")
+
+mse_df <- future.apply::future_replicate(500, get_mse(beta_list, num_obs))
+
+future::plan("sequential")
+
+mse_df <- mse_df |> t() |> as.data.frame()
+
+write.csv(mse_df, file = "original_set_out_sample_mse.csv", row.names = F)
+
+sapply(mse_df, median) |> t() |> kable(caption = "Median Out-of-Sample MSE metrics by penalty")
+
+```
+
+
+
+Here, we get a visualization of how the parameter estimates change with different lambda values:
 
 ```{r}
 rm(full_df)
