@@ -291,6 +291,28 @@ sapply(mse_df, median) |> t() |> kable(caption = "Median Out-of-Sample MSE metri
 
 
 
+
+Here, we will get the out-of-sample MSE for our original example:
+
+```{r}
+source('get_mse.R')
+
+future::plan("multisession")
+
+mse_df <- future.apply::future_replicate(500, get_mse(beta_list, num_obs))
+
+future::plan("sequential")
+
+mse_df <- mse_df |> t() |> as.data.frame()
+
+write.csv(mse_df, file = "original_set_out_sample_mse.csv", row.names = F)
+
+sapply(mse_df, median) |> t() |> kable(caption = "Median Out-of-Sample MSE metrics by penalty")
+
+```
+
+
+
 Here, we get a visualization of how the parameter estimates change with different lambda values:
 
 ```{r}
