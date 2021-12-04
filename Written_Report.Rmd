@@ -42,7 +42,9 @@ We will now present the main statistical methods that were utilized in our inves
 - Ridge Regression
 - Elastic-Net
 
-##### Ordinary Least Squares
+##### No Pentalization
+
+###### Ordinary Least Squares
 Ordinary Least Squares, or OLS, is a method in linear regression that chooses parameters of a linear model based on a set of explanatory variables based on the principle of least squares. The Least Squares Estimation process is based on the process of minimizing the distance between the actual data responses and the fitted values/residuals of the estimated linear regression line. The line produced by the method of least squares is shown below:
 Ordinary Least Squares, or OLS, is a method in linear regression that estimates parameters of a linear model based on a set of explanatory variables based on the principle of least squares. A model with p explanatory variables would be modeled as such:
 
@@ -62,15 +64,50 @@ In other words, the ordinary least squares method chooses estimates so that the 
 **Things to note:**
 The outputs of regression for the OLS estimator are unbiased estimators of the different $\beta$ terms. According to the Guass-Markov Theorem, each of the $\hat{\beta}$ variables are unbiased and have minimum variance among all unbiased linear estimators for $\beta$. However this estimator will work best with data with no sparsity and large $\beta$ terms. When we look towards models with more sparsity, OLS may not be the best method to use. 
 
-In other words, the ordinary least squares method chooses estimates so that the regression model deviates the least from the data, with no penalty term. From the least square estimates we can then find variance
 
-##### LASSO
-Works better with more zero's
 
-##### Ridge Regression
+##### Pentalization
+
+Next, we look at other methods that include penalty terms in order to create the most optimal model. These penalization methods have large benefits that allow for regression models to have the best predictive power by either minimizing the number of covariates or minimizing the weight of the covariates. When there are a large number of covariates in a data set, there may be too many to include in a regression model or not all of the covariates may be the best predictors of the regression. The regression methods below offer different penalization/shrinkage for variable selection below. However, there are some disadvantages to these methods. One being the added difficulty of model interpretation and the largest disadvantage being the presence of bias in exchange for the better predictive model. 
+
+The idea of the penalization methods is that conventional regression is first performed and then the constraint is applied to the model depending on the chosen variable selection model (LASSO, Ridge Regression or Elastic Net).
+
+
+###### LASSO
+LASSO regression, also known as Least Absolute Shrinkage and Selection Operator is a type of linear regression that uses shrinkage in a model as penalization. The main goal in LASSO regression is to select and eliminate variables by decreasing the beta coefficients to zero. If a variable is not strongly associated with the outcome, the beta coefficent is decreased to zero and is therefore taken out of the model. This regression model can also be seen as a model selection method since the model takes out what is deems as "insignificant predictors". 
+
+
+
+
+LASSO regression performs L1 regularization, which adds a penalty equal to the absolute value of the magnitude of coefficients. In other words, L1 regularization adopts the constraint that the sum of the absolute-valued regression coefficients must be less than some threshold. The goal of LASSO regression is to minimize:
+
+$\sum^{n}_{i=1} \big( Y_{i} - \beta_{0} - \sum^{p}_{j=1} \beta_{p}X_{ij} \big)^{2} + \lambda\sum^{p}_{j=1}|\beta_{j}|$
+
+
+which is the same as minimizing the sum of squares. The tuning parameter $\lambda$, controls the strength of the L1 penalty and therefore the amount of shrinkage in the model. So when $\lambda=0$, LASSO will equal the LSE. However, with this tuning parameter comes a balance of bias and variance. As $\lambda$ increases the bias of the model will increase, but when $\lambda$ decreases, the variance of the model will increase. Since the goal is to have the best predictive model with the least amount of bias and variance, that must be taken into account when choosing the tuning parameter if LASSO regression is chosen as the regression model method.
+
+
+
+*Things to note:* The LASSO method is the preferred method when working with relatively small number of predictors that have a have a substantial effect, and the remaining predictors have coefficients that are very small or to equal zero. Therefore this method will be much more effective with a model with more zero's or sparsity. LASSO regression has many benefits that other methods don't have. This method results in a much simpler model that is much easier to interpret and it removes collinear/multicollinear variables by keeping only one of the correlated terms and eliminating the others. However, in certain settings LASSO regression may be too harsh of a method and may reduce the model by estimating more coefficients than wanted, resulting in a oversimplified model with lost information.
+
+
+
+
+
+
+
+
+
+###### Ridge Regression
 Works better with a lot of small beta's (0.01 - 0.05)
+• Ridge regression will include all p predictors in the final model - this can be a problem
+for high dimensional and some other datasets!
+• The penalty in Ridge regression will shrink all of the coefficients towards zero, but it
+will not set any of them completely to zero, as we found above.
+• This may not be a problem for prediction accuracy, but it can create challenges in
+model interpretation and parsimony!
 
-##### Elastic Net
+###### Elastic Net
 Works better with medium sparsity
 
 #### 2b) Metrics
@@ -531,6 +568,7 @@ As you can see, as the value of lambda increases, as does the penalty applied to
 
 - https://www.xlstat.com/en/solutions/features/ordinary-least-squares-regression-ols
 - Dr. Lake Slides
+- https://www.statisticshowto.com/lasso-regression/
 - Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. J. R. Statist. Soc. B, 58, 267–288.
 - Zou, H., Hastie, T. (2005). Regularization and variable selection via the elastic net. J. R. Statist. Soc. B, 67(2), 301–320.
 
