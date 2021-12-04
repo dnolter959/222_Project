@@ -114,11 +114,20 @@ $\lambda$ here again is the tuning parameter/shrinking penalty and will shrink t
 
 
 ###### Elastic Net
-Works better with medium sparsity
+
+Due to criticisms of the other penalization methods, elastic net regression was created as a happy medium between ridge regression and LASSO regression. This solution incorporates the combination of the penalties of ridge regression and LASSO in order to get the best of both models. The penalty term of elastic net includes 2 $\lambda$ values, one penalty term for ridge regression and one penalty term for LASSO regression. Cross validation is used on different combinations for these two tuning parameters in order the find their optimal values. This way, the resulting equation is a nice balance of the L1 and L2 penalty impacts. Elastic net regression accomplishes this goal by minimizing the following loss function:
 
 
+$\frac{1}{2n}\sum^{n}_{i=1} \big( Y_{i} - X_{i}\hat{\beta} \big)^{2} +  \lambda \big( \frac{1-\alpha}{2}\sum^{p}_{j=1}\beta_{j}^2 + \alpha \sum^{p}_{j=1}|\hat{\beta}_{j}|\big)$
 
 
+where $\alpha$ is an additional tuning parameter such that
+* if $\alpha = 0$, the regression approach becomes ridge regression
+* if $\alpha = 1$, the regression approach becomes LASSO regression
+* if $\alpha \in (0,1)$, the regression approach is Elastic Net regression
+
+
+*Things to note:* Elastic net incorporates the best of both methods. This approach is not necessarily the best choice all the time, it depends on the given data and covariates. This approach will work best with variables with a medium amount of sparsity
 
 
 
