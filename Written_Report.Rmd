@@ -255,32 +255,41 @@ We've now reviewed the estimates of the *beta coefficients* relative to their tr
 To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the **test data** and **modeled coefficients** from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison.
 
 ```{r, echo=FALSE}
-source("analysis_scripts/calculate_out_of_sample_MSE.R")
-df <- read.csv('data/aggregate_mse_data.csv')
-
-df2 <- df %>% pivot_longer(
+mse_1 = read.csv('data/original_set_out_sample_mse.csv')
+mse_1 = mse_1 %>% pivot_longer(
     cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"), 
     values_to = "MSE", 
-    names_to = "Model"
-  ) %>% 
-    dplyr::rename(Small = prop_small)
+    names_to = "Model")
+```
 
-df3 = df2 %>% filter(num_obs == 200, sparsity == 0.5, Small == 0)
-ggplot(df3, mapping = aes(col = Model, x = 0, y = log(MSE))) + 
+```{r, echo=FALSE}
+ggplot(mse_1, mapping = aes(col = Model, x = 0, y = log(MSE))) + 
   geom_boxplot() +
   theme(axis.title.x=element_blank(),
       axis.text.x=element_blank(),
       axis.ticks.x=element_blank())
 ```
 
-It is clear that in this setting of relatively high sparsity, Elastic Net and LASSO greatly outperform Ridge and un-penalized OLS in terms of out-of-sample MSE. This is because bias introduced by shrinking the non-zero parameters in the penalized models is only a small price to pay for the steep reduction in variance when predicting the truly 0 parameter values. In this setting where there is high sparsity, it is clear that LASSO reigns supreme. 
+It is clear that in this setting of relatively high sparsity, Elastic Net and LASSO outperform Ridge and un-penalized OLS in terms of out-of-sample MSE. This is because bias introduced by shrinking the non-zero parameters in the penalized models is only a small price to pay for the steep reduction in variance when predicting the truly 0 parameter values. In this setting where there is high sparsity, it is clear that LASSO reigns supreme. 
 
-However, what if there is slightly less sparsity? Or what if the true parameters are non-zero but instead just very small? How does each model perform in this setting. We now proceed to test some of these questions to better understand the trade offs implicit in these penalization methods.
+However, what if there is slightly less sparsity? Or what if the true parameters are non-zero but instead just very small? How does each model perform in these settings. We now proceed to test some of these questions to better understand the trade offs implicit in these penalization methods.
 
-First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
+First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). A sparsity of 0.1 means that 10% of the true beta coefficients are 0. We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
 
 ```{r, echo=FALSE}
-ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
+mse_2 <- read.csv('data/aggregate_mse_data.csv')
+mse_2 <- mse_2 %>% pivot_longer(
+    cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"), 
+    values_to = "MSE", 
+    names_to = "Model"
+  ) %>% 
+    dplyr::rename(Small = prop_small)
+
+```
+
+```{r, echo=FALSE}
+mse_2_fixed_smallness = mse_2 %>% filter(Small == 0)
+ggplot(mse_2_fixed_smallness, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
   geom_boxplot() +
   facet_grid(rows = vars(sparsity), labeller = label_both) +
   labs(x = "Number of Observations")
@@ -288,22 +297,22 @@ ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) +
 
 It is clear that in the very high sparsity setting (i.e., the setting where nearly all coefficients are truly 0) we see that the OLS model performs quite poorly compared to the penalization methods (especially when there are fewer observations). A somewhat counter-intuitive finding is that the penalization methods perform quite well on median in the low sparsity setting as well; however there is wide variance in out-of-sample MSE across each simulation in the setting with only 200 observations. A further question of interest might be to examine model performance for even lower sparsity (or even 0 sparsity), and increase the number of covariates tested from 20 to say, 200; and to compare results.   
 
-Now we consider the setting where the non-zero coefficients are close to 0, (i.e., "small"). In this setting, we fix sparsity at [X] and vary the size of non-zero coefficients. We set small coefficients to lie in the range 0.0005-0.005, an we allow the remaining coefficients to lie in the range 0.5-1.5. So for example, in the setting with `small = 0.5`; half of the true non-zero coefficients lie in 0.0005-0.005, and half lie in 0.5-1.5. In this setting, we expect that severe penalization methods like LASSO and Elastic Net will send too many of these coefficients to 0, and the OLS model will overestimate these small true $\beta$s= values. 
+Now we consider the setting where the non-zero coefficients are close to 0, (i.e., "small"). In this setting, we fix sparsity at 0.1 (i.e., 2 of the 20 parameters are truly 0) and vary the size of non-zero coefficients. We set small coefficients to lie in the range 0.0005-0.005, an we allow the remaining coefficients to lie in the range 0.5-1.5. So for example, in the setting with `small = 0.5`; half of the true non-zero coefficients lie in 0.0005-0.005, and half lie in 0.5-1.5. In this setting, we expect that severe penalization methods like LASSO and Elastic Net will send too many of these coefficients to 0, and the OLS model will overestimate these small true $\beta$ values. 
 
 ```{r, echo=FALSE}
-df4 = df2 %>% filter(sparsity == 0.1)
-ggplot(df4, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
+mse_2_fixed_sparsity = mse_2 %>% filter(sparsity == 0.1)
+ggplot(mse_2_fixed_sparsity, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
   geom_boxplot() +
   facet_grid(rows = vars(Small), labeller = label_both) +
   labs(x = "Number of Observations")
 ```
 
-Indeed, we see that Ridge regression is the highest performing model in this setting, and this is especially true with a lower number of observations. 
+Indeed, we see that Ridge regression is the highest performing model in the setting of high "smallness", and this is especially true with a lower number of observations. However, Elastic Net and LASSO perform quite well in this contrived example as well. This is because these models are estmimating the small coefficients to be 0; and since 0 is very close to their true values, the predicted Y values are close to their true values. To expand this study and more clearly demonstrate the superiority of Ridge in this setting, we might slightly increasing the size of true small parameters values, or increasing the number of covariates in each model. 
 
 Below we present results for all 9 combinations of sparsity and coefficient size. 
 
 ```{r, echo=FALSE}
-ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
+ggplot(mse_2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
   geom_boxplot() +
   facet_grid(rows = vars(Small), cols = vars(sparsity), labeller = label_both) +
   labs(x = "Number of Observations")
