@@ -7,7 +7,6 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
 library(tidyverse)
 library(ggplot2)
 library(ggpubr)
@@ -17,7 +16,6 @@ library(dplyr)
 ```
 
 ```{r function_def, echo = F}
-
 generate_data <- function(beta_list, # a numeric vector of beta coefficients
                           num_obs, ## number of observations in the output matrix
                           num_underlying_factors = 0, #number of underlying factors (0 is no multicollinearity)
@@ -26,7 +24,6 @@ generate_data <- function(beta_list, # a numeric vector of beta coefficients
                           
                           ){
   ## Takes a list of beta coefficients and returns a matrix satisfying those constraints
-
   
   xi_sd <- replicate(n =length(beta_list) - 1, rnorm(num_obs)) %>% as.matrix()
   if(num_underlying_factors > 0 && covariates_per_factor > 1 && strength_collinearity > 0){
@@ -52,11 +49,6 @@ generate_data <- function(beta_list, # a numeric vector of beta coefficients
   mat_to_fit <- cbind(y = t(y), xi_sd) 
   return(mat_to_fit)
 }
-
-
-
-
-
 model_fit <- function(beta_list, num_obs) {
   mat_to_fit <- generate_data(beta_list, num_obs)
   y <- mat_to_fit[,1]
@@ -143,9 +135,6 @@ model_fit <- function(beta_list, num_obs) {
   
   return(return_vector)
 }
-
-
-
 format_df <- function(input_df){
   ## takes a dataframe returned by replicating model_fit and transforms it so
   ## there is one row per estimate 
@@ -160,8 +149,6 @@ format_df <- function(input_df){
     rename(bias = Beta_bias, variance = Beta_variance , mse = Beta_mse )
   return(data)
 }
-
-
 beta_boxplots <- function(input_df, format_data = F, beta_num, beta_list, legend = T){ 
   #' Creates a boxplot using each 
   #' input_df: the dataframe (either returned by replicating model_fit or format_df)
@@ -192,9 +179,6 @@ beta_boxplots <- function(input_df, format_data = F, beta_num, beta_list, legend
     return(p)
     
 }
-
-
-
 plot_all_beta <- function(input_df, beta_list, ncol = 4){
   #' a function taking a dataframe (returned by replicating model_fit) which returns boxplots
   #' input_df: a dataframe created by replicating model_fit
@@ -222,59 +206,44 @@ First, we will consider a model with true beta coefficients that are mostly zero
 
 ```{r}
 ##This is where you change parameters
-
 n_reps <- 500
 beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
 num_obs <- 300
-
-
 ##These lines may cause errors on your machine, see below if they don't work
 future::plan(multisession, workers = parallel::detectCores()) 
 df <- future.apply::future_replicate(n_reps, model_fit(beta_list, num_obs)) %>% t() %>% data.frame()
 future::plan(sequential) #I think this should reset your R session because we don't need to parallel process anything else
-
 #The commented line below will do the same thing as the above two lines, but slower. 
 # df <- replicate(n_reps, model_fit(beta_list, num_obs)) %>% t() %>% data.frame()
-
-
 plot_all_beta(df, beta_list)
-
 ```
 
 We can see from the boxplots of the beta coefficients that LASSO, Ridge, and elastic net tend to underestimate the true parameter, while the unpenalized model is unbiased. However, when parameters are zero, the spread of elastic net and LASSO estimates is much smaller. 
 
 ```{r, echo=FALSE}
 fdf <- format_df(df)
-
 means <- fdf %>%
   select(-c("bias", "variance", "mse", "Simulation")) %>% 
   group_by(Model) %>%
   dplyr::summarise(across(everything(), .fns = mean, na.rm= TRUE)) 
-
-
 # beta_vars <- fdf %>%
 #   group_by(Model) %>%
 #   select(-c("bias", "variance", "mse", "Simulation")) %>% 
 #   dplyr::summarise(across(everything(), .fns = var, na.rm= TRUE)) 
-
 beta_vars <- fdf %>%
   group_by(Model) %>%
   select(-c("bias", "variance", "mse", "Simulation")) %>% 
   dplyr::summarise(across(everything(), 
                    .fns = ~ sum((.x-mean(.x))^2)/length(.x) ) ) # We're not using the estimate of population variance here, I believe
-
-
 beta_bias <- sapply(1:nrow(means), function(x){
   unlist(means[x,-1]) - beta_list}) %>%   
   t() %>%  
   cbind(means[,1], . )
-
 beta_mse <- sapply(1:nrow(means), function(x){
   beta_bias[x, -1]^2 + beta_vars[x, -1]
   }) %>% 
   t() %>%  
   cbind(means[,1], . ) 
-
 beta_mse %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta_num", 
                      values_to = "value") %>% 
   separate(beta_num, into = c("junk", "beta_num")) %>% 
@@ -285,7 +254,6 @@ beta_mse %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta
   ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
   facet_wrap(vars(beta_num), scales = "free") +
   labs(title = "Mean Squared Error of Regression Coefficient", x = '', y = '', fill = "Is Zero")
-
 ```
 
 
@@ -293,8 +261,6 @@ beta_mse %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta
 When evaluating the mean squared error of our estimates of regression coefficients, Elastic Net and LASSO regression tend to have lower MSE for coefficients when they are equal to zero. 
 
 ```{R}
-
-
 beta_vars %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta_num", 
                      values_to = "value") %>% 
   separate(beta_num, into = c("junk", "beta_num")) %>% 
@@ -305,11 +271,24 @@ beta_vars %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "bet
   ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
   facet_wrap(vars(beta_num), scales = "free") + 
   labs(x = '', y = '', title = "Variance of Estimators", fill = "Is Zero")
-
-
 ```
 
 The variance in estimates is also much lower for Elastic Net and LASSO regression for zero coefficients, but is comparable to unpenalized regression for non-zero coefficients. 
+
+
+
+Here, we will get the out-of-sample MSE for our original example:
+
+```{r}
+source('get_mse.R')
+future::plan("multisession")
+mse_df <- future.apply::future_replicate(500, get_mse(beta_list, num_obs))
+future::plan("sequential")
+mse_df <- mse_df |> t() |> as.data.frame()
+write.csv(mse_df, file = "original_set_out_sample_mse.csv", row.names = F)
+sapply(mse_df, median) |> t() |> kable(caption = "Median Out-of-Sample MSE metrics by penalty")
+```
+
 
 
 
@@ -338,11 +317,8 @@ Here, we get a visualization of how the parameter estimates change with differen
 
 ```{r}
 rm(full_df)
-
 beta_list <- c(2, -1.2, -.7, -.1, .2, .5, 1,0, 0, 0, 0, 0, 0, 0)
-
 for (i in 1:10){
-
   mat_to_fit <- generate_data(beta_list = beta_list, num_obs = 1000, num_underlying_factors = 1, covariates_per_factor = 4, strength_collinearity = .9)
   
   
@@ -368,8 +344,6 @@ for (i in 1:10){
     full_df <- current_df
   }
 }
-
-
   ggplot(data = full_df) +  geom_line(mapping = aes(x = lambda, y = value,group = iter, col = name 
                                                      ), alpha = .5)
   
@@ -381,8 +355,6 @@ Now, let's see how these models perform under different conditions. We will eval
 
 ```{r, eval = F}
 df <- read.csv('aggregate_mse_data.csv')
-
-
 df2 <- df %>% pivot_longer(cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"), 
                            values_to = "MSE", 
                            names_to = "Model") %>% 
@@ -392,10 +364,6 @@ ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) +
   geom_boxplot() +
   facet_grid(rows = vars(Small), cols = vars(sparsity), labeller = label_both) +
   labs(x = "Number of Observations")
-
-
-
-
 ```
 
 
