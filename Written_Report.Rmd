@@ -34,7 +34,7 @@ With the motivation given, we will now turn attention to our underlying research
 
 ### 2) Methods
 
-#### 2a) Models
+#### a) Models
 We will now present the main statistical methods that were utilized in our investigation. In order to examine the effects of sparsity in linear models, we looked at four distinct model methods that deal with sparsity in different ways. These four methods are: 
 
 - Ordinary Least Squares
@@ -73,19 +73,19 @@ Works better with a lot of small beta's (0.01 - 0.05)
 ##### Elastic Net
 Works better with medium sparsity
 
-#### 2b) Metrics
+#### b) Metrics
 [I wrote this below in the results section but it might be better suited for here. - Dan.]
 
 Out of Sample MSE:
 To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the test data and *modeled coefficients* from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
 
 
-#### 2c) Design of Simulation Study
+#### c) Design of Simulation Study
 
 As discussed above, through this study we were interested in demonstrating the superiority of LASSO regression in those contexts with a high level of sparsity. We then consider other contexts where Ridge Regression, Elastic Net, and OLS are expected to outperform LASSO, and test our hypotheses using simulations. 
 
 ##### Step 1: Simulation set up and data generation
-We begin with a basic We would like to predict Y given a set of 10 covariates using the linear model below. 
+We begin with a basic example: we contrive a scenario where we would like to predict Y given a set of 10 covariates using the linear model below. 
 
 ${Y} = {\beta}_0 + {\beta}_1 x_1 + {\beta}_2 x_2 + ... + ... +{\beta}_{10} x_{10}$
 
@@ -95,11 +95,11 @@ ${Y} = 2 + 1 x_1 + 0.5 x_2 -0.5 x_3 + 0 x_4 + 0 x_5 + 0 x_6 + 0 x_7 + 0 x_8 + 0 
 
 Note that 7 of the parameters are set to 0; we made this choice because we are primarily interested in comparing model performance in the presence of sparsity. 
 
-Next, we are interested in generating a random dataset, and then running our 4 models of interest (OLS, LASSO, Ridge, Elastic Net) on this dataset to estimate each of the 11 $\beta_i$ values using each model. We then repeat this simulation and fit regression coefficients for each model 500 times, and compare the performance of the four models. Below we explain this process in greater detail:  
+Next, we generate a random dataset, and then run our 4 models of interest (Unpenalized OLS, LASSO, Ridge, Elastic Net) on this dataset to estimate each of the 11 $\beta_i$ values using each model. We then repeat this simulation and fit regression coefficients for each model 500 times, and compare the performance of the four models. Below we explain this process in greater detail:  
 
 **Step 1a: Generating random data**
 
-In order to generate our random dataset we simply select a sample size of 300, and sample from a standard normal distribution for every coviariate value for each of the 300 observations. Again, every single value of every covariate is sampled from the exact same standard normal distribution. We do this to introduce randomness into the data generating process while still adhering to the normality and equal variance assumptions required by the estimation procedures we wish to test. The head of this data frame looks like this:
+In order to generate our random dataset we choose a sample size of 300, and sample from a standard normal distribution for every coviariate value for each of the 300 observations. Again, every single value of every covariate is sampled from the exact same standard normal distribution. We do this to introduce randomness into the data generating process while still adhering to the normality and equal variance assumptions required by the estimation procedures we wish to test. The head of this data frame looks like this:
 
 ```{r, echo=FALSE}
 beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
@@ -108,7 +108,7 @@ xi_sd <- replicate(n = length(beta_list) - 1, rnorm(num_obs))
 data.frame(xi_sd)
 ```
 
-Using these randomly generated covariate values, we generate corresponding Y values given our choice of parameters by simply multiplying the design matrix corresponding to our random data by the vector of parameter values, and the adding an error term (as drawn from the standard normal distribution). Doing so we retrieve a single dataset of randomly drawn covariate values and their corresponding Y values given our choice of parameters. The head of this data frame looks like this:
+Using these randomly generated covariate values, we generate corresponding Y values given our choice of parameters by simply multiplying the design matrix corresponding to our random data by the vector of parameter values, **and then adding an error term** (as drawn from the standard normal distribution). We must add an error term as per the specification of the linear model, and because otherwise OLS would exactly predict our parameter values in each simulation. Doing so we retrieve a single dataset of randomly drawn covariate values and their corresponding Y values given our choice of parameters. The head of this data frame looks like this:
 
 ```{r, echo=FALSE}
 x = cbind(rep(1, num_obs), xi_sd)
@@ -120,14 +120,15 @@ data
 ```
 
 **Step 2: Simulations Details**
-Once we had our dataset of predictors $X_i$ and outcome $Y$, what remains is to run our four regression models of interest on this dataset to retrieve point estimates for the 11 $\beta$ coefficients. After running each of the models, we are interested in examining (1) the proximity of the estimated coefficients to their true underlying values in each case, as well as (2) the proximity of the predicted $\hat{Y}$ values to their true $Y$, measured in Mean Squared Error. 
 
-Further, we are interested in repeating this experiment many (500) times and examining the variance of the distributions of the coefficient point estimates.
+Once we have our dataset of predictors $X_i$ and outcome $Y$, what remains is to run our four regression models of interest on this dataset to retrieve point estimates for the 11 $\beta$ coefficients. After running each of the models, we examine (1) the proximity of the estimated coefficients to their true underlying values in each case, as well as (2) the proximity of the predicted $\hat{Y}$ values to their true $Y$, measured in Mean Squared Error. 
 
-As for the details of our regression models, I'll consider them in two categories: (1) the un-penalized model (OLS), and (2) the penalization models (Ridge, LASSO, Elastic Net)   
+We then complete this experiment 500 times and examine the variance of the distributions of the coefficient point estimates.
+
+As for the details of our regression models, we'll consider them in two categories: (1) the un-penalized model (OLS), and (2) the penalization models (Ridge, LASSO, Elastic Net)   
 
 1) *Un-penalized Model (OLS)*:
-For this model, we simply regress Y on $X_1, X_2, ..., X_{10}$  using OLS using the below command. 
+For this model, we simply regress Y on $X_1, X_2, ..., X_{10}$  using OLS using the below R command. 
 
 ```{r, results="hide"}
 lm(Y ~ X1:X10, data = data)
@@ -144,211 +145,26 @@ lambda = 0.6
 ```{r, results="hide"}
 glmnet(y = data$Y, x = data[,2:ncol(data)], family = "gaussian", alpha = alpha, lambda = lambda)
 ```
-Where we set alpha equal to 0, 0.5, and 1 for Ridge, Elastic Net, and LASSO, respectively. For selecting the lambda level, we first ran each model with no lambda parameter and used 5-fold cross validation to select the lambda level associated with the lowest MSE in each case. Then we fit each penalization model with this lambda value.
 
-### 3) Results
-```{r, echo = FALSE}
-generate_data <- function(beta_list, # a numeric vector of beta coefficients
-                          num_obs, ## number of observations in the output matrix
-                          num_underlying_factors = 0, #number of underlying factors (0 is no multicollinearity)
-                          covariates_per_factor = 0, #covariates per underlying factor
-                          strength_collinearity = 0 #between 0 and 1, 1 is perfect collinearity
-                          
-                          ){
-  ## Takes a list of beta coefficients and returns a matrix satisfying those constraints
+Where we set alpha equal to 0, 0.5, and 1 for Ridge, Elastic Net, and LASSO, respectively. Of course, a more rigorous study would also attempt to select an optimal alpha level for the Elastic Net model, but choosing alpha = 0.05 for Elastic Net is sufficient for our illustrative purposes.
 
-  
-  xi_sd <- replicate(n =length(beta_list) - 1, rnorm(num_obs)) %>% as.matrix()
-  if(num_underlying_factors > 0 && covariates_per_factor > 1 && strength_collinearity > 0){
-    k <- 2
-    for (i in 1:num_underlying_factors){
-      current_factor <- rnorm(num_obs)
-      new_k <- k + covariates_per_factor
-      if (new_k > ncol(xi_sd)){
-        k <- 3 #we've already gone around once so we might as well mix up some of the collinearity groups
-        new_k <- k + covariates_per_factor
-      }
-      
-      
-      current_to_add <- k:new_k
-      for (j in current_to_add){
-        xi_sd[,j] <- (xi_sd[,j]*(1 - strength_collinearity) + current_factor*strength_collinearity ) |> scale() #weight them and then normalize back to have a sd of 1. We will be dividing 
-      }
-    }
-  }
-  x = cbind(rep(1, num_obs), xi_sd)
-  y = beta_list %*% as.matrix(t(x)) + rnorm(num_obs) # create matrix with TRUE Y
-  
-  mat_to_fit <- cbind(y = t(y), xi_sd) 
-  return(mat_to_fit)
-}
+As for selecting the lambda level, used 5-fold cross validation across many levels of lambda and selected the lambda in each case associated with the lowest average MSE in the test set. Then we fit each penalization model with this lambda value. The R code used to retrieve the optimal lambda level is stated below:
 
-
-
-
-
-model_fit <- function(beta_list, num_obs) {
-  mat_to_fit <- generate_data(beta_list, num_obs)
-  
-  current_lm <- lm(mat_to_fit[,1] ~ mat_to_fit[,2:ncol(mat_to_fit)])
-  current_lm <- lm(mat_to_fit[,1] ~ mat_to_fit[,2:ncol(mat_to_fit)])
-  
-  lambda_lasso <- glmnet::cv.glmnet(y = mat_to_fit[,1], 
-                                    nfolds = 5, #so it will be ok when we use on small samples
-                                x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                family = "gaussian",
-                                alpha = 1 #lasso penalty (0 is ridge)
-  ) %>% 
-    .$lambda.min
-  
-  lambda_elastic <- glmnet::cv.glmnet(y = mat_to_fit[,1], 
-                                    x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                    nfolds = 5,
-                                    family = "gaussian",
-                                    alpha = .5 #lasso penalty (0 is ridge)
-  ) %>% 
-    .$lambda.min
-  
-  
-  lambda_ridge <- glmnet::cv.glmnet(y = mat_to_fit[,1], 
-                                    x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                    nfolds = 5,
-                                    family = "gaussian",
-                                    alpha = 0 #ridge penalty
-  ) %>% 
-    .$lambda.min
-  
-  current_lasso <- glmnet::glmnet(y = mat_to_fit[,1], 
-                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                  family = "gaussian",
-                                  alpha = 1, #1 is lasso penalty (0 is ridge)
-                                  lambda = lambda_lasso
-                                  )
-  
-  current_ridge <- glmnet::glmnet(y = mat_to_fit[,1], 
-                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                  family = "gaussian",
-                                  alpha = 0, #0 is ridge
-                                  lambda = lambda_ridge
-                              
-  )
-  
-  current_elastic <- glmnet::glmnet(y = mat_to_fit[,1], 
-                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                  family = "gaussian",
-                                  alpha = .5, #0 is ridge
-                                  lambda = lambda_elastic)
-  
-  return_vector <- c()
-  
-  p <- length(beta_list - 1)
-  y <- y %>% as.vector() #so we can do sums of that and our predictions
-  for (mod in list(current_lasso, current_ridge,current_elastic)){
-    current_preds <- predict(mod, mat_to_fit[,2:ncol(mat_to_fit)] ) %>% as.vector()
-    current_bias <- mean(current_preds - y)
-    current_var <- var(current_preds)
-    current_mse <- sum((current_preds - y)^2) / (num_obs - p - 1)
-    return_vector <- c(return_vector, as.vector(coef(mod)), current_bias, current_var, current_mse)
-  }
-  
-  ## for lm
-  current_preds <- predict(current_lm, mat_to_fit[,2:ncol(mat_to_fit)] %>% data.frame() ) %>% as.vector()
-  current_bias <- mean(current_preds - y)
-  current_var <- var(current_preds)
-  current_mse <- sum((current_preds - y)^2) / (num_obs - p - 1)
-  return_vector <- c(return_vector, as.vector(coef(current_lm)), current_bias, current_var, current_mse)
-  
-  highest_beta <- (length(beta_list) - 1)
-  
-  names(return_vector) <- c(paste("LASSO", 0:highest_beta, sep = '_'),
-                            paste("LASSO", c("bias", "variance", "mse"), sep = '_'),
-                            paste("Ridge", 0:highest_beta, sep = '_'),
-                            paste("Ridge", c("bias", "variance", "mse"), sep = '_'),
-                            paste("Elastic", 0:highest_beta, sep = '_'),
-                            paste("Elastic", c("bias", "variance", "mse"), sep = '_'),
-                            paste("Unpenalized", 0:highest_beta, sep = '_'),
-                            paste("Unpenalized", c("bias", "variance", "mse"), sep = '_')
-                            )
-  
-  return(return_vector)
-}
-
-
-
-format_df <- function(input_df){
-  ## takes a dataframe returned by replicating model_fit and transforms it so
-  ## there is one row per estimate 
-  data <- input_df %>% 
-    mutate(sim_number = 1:nrow(input_df)) %>% #we have to do this to get pivots to recognize unique rows
-    tidyr::pivot_longer(cols = colnames(input_df), names_to = "Estimate", values_to = "Value") %>% 
-    separate(col = "Estimate", into = c("Model", "Beta")) %>%
-    unite(col = Model_iter, Model, sim_number, sep = "_") %>%
-    pivot_wider(names_from = "Beta", values_from = "Value", names_prefix = "Beta_") %>%
-    separate(col = Model_iter, into = c("Model", "Simulation")) %>%
-    data.frame() %>% 
-    rename(bias = Beta_bias, variance = Beta_variance , mse = Beta_mse )
-  return(data)
-}
-
-
-beta_boxplots <- function(input_df, format_data = F, beta_num, beta_list, legend = T){ 
-  #' Creates a boxplot using each 
-  #' input_df: the dataframe (either returned by replicating model_fit or format_df)
-  #' format_data: a logical indicating whether input_df needs to be formatted
-  #' beta_num: the beta coefficient you want boxplots of
-  #' beta_list: the list of beta coefficients
-  #' legend: a logical indicating whether we need to include a legend in this plot
-  
-  if(!format_data){
-    data <- input_df
-  }
-  else{
-    data <- format_df(input_df)
-  }
-  
-  my_list <- data[,paste('Beta', beta_num, sep = "_")]
-  truth <- beta_list[beta_num + 1] #we want beta_0 to be the intercept
-  
-  p <- ggplot(data = data, mapping = aes(col = Model, y = my_list)) + 
-    geom_boxplot() +
-    geom_hline(aes(yintercept = truth), col = "blue") +
-    labs(y = "", title = paste('Beta', beta_num, sep = "_")) + 
-    scale_x_continuous(breaks = c())
-  
-  if(!legend){
-    p <- p + theme(legend.position = "none")
-  }
-    return(p)
-    
-}
-
-
-
-plot_all_beta <- function(input_df, beta_list, ncol = 4){
-  #' a function taking a dataframe (returned by replicating model_fit) which returns boxplots
-  #' input_df: a dataframe created by replicating model_fit
-  #' beta_list: the list of true beta coefficients
-  #' ncol: the desired number of columns in the resulting plot.
-  df <- format_df(input_df)
-  
-  
-  beta_plots <- list()
-  for (i in 0:(length(beta_list) - 1)){
-    beta_plots[[i + 1]] <- beta_boxplots(input_df = df, format_data = F, beta_num = i, beta_list = beta_list, legend = F)
-    beta_plots[[i + 1]]
-  }
-  beta_plots[[length(beta_list) + 1]] <- beta_boxplots(input_df = df, format_data = F, beta_num = i, beta_list = beta_list, legend = T) %>%  
-    ggpubr::get_legend() %>% 
-    as_ggplot()
-    
-  egg::ggarrange(plots = beta_plots, ncol = ncol)
-  
-}
+```{r, results="hide", message = FALSE, warning=FALSE}
+cv.glmnet(y = data$Y, x = as.matrix(data[,2:ncol(data)]),
+          nfolds = 5, family = "gaussian", alpha = alpha) %>% .$lambda.min
 ```
 
-Here are a series of boxplots which show the distribution of point estimates for each of the 11 $\beta$ parameters. Recall that for the simulation study we set $\beta_0 = 2$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\beta_3 = -0.5$, and $\beta_4 = \beta_5 = ... = \beta_9 = \beta_{10} = 0$. In this setting we set n = 300, and run each model 500 times. 
+### 3) Results
+
+Below are a series of boxplots which show the distribution of point estimates for each of the 11 $\beta$ parameters. Recall that for the simulation study we set $\beta_0 = 2$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\beta_3 = -0.5$, and $\beta_4 = \beta_5 = ... = \beta_9 = \beta_{10} = 0$. In this setting we set n = 300, and run each model 500 times. 
 
 ```{r, echo=FALSE}
+# Load Simulation Functions
+source("analysis_scripts/generate_data.R")
+source("analysis_scripts/model_fit.R")
+source("analysis_scripts/plot_functions.R")
+
 # Set Parameters
 n_reps <- 500
 beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
@@ -363,82 +179,48 @@ future::plan(sequential)
 plot_all_beta(df, beta_list)
 ```
 
-We can see from the boxplots of the beta coefficients that LASSO, Ridge, and elastic net tend to underestimate the true parameter, while the unpenalized model is unbiased. However, when parameters are zero, the spread of elastic net and LASSO estimates is much smaller. 
+We can see from the boxplots of the beta coefficients that LASSO, Ridge, and elastic net tend to underestimate (in absolute value terms) the true parameter, while the unpenalized model is unbiased.  This jibes with our expectation, as the penalization methods are shrinking the truly non-zero coefficients (often all the way to 0 in the case of LASSO), and in so doing are introducing bias in exchange for smaller variance. The clear superiority of Unpenalized OLS on predicting $\beta_1$, $\beta_2$, and $\beta_3$ should serve as a cautionary tale that these penalization methods, while powerful, certainty introduce bias when predicting relatively "large" parameter values and should be used with care.
+
+On the other hand, when parameters are truly zero, -- despite the fact that Unpeanlized OLS have very low bias in these cases -- the penalization methods outperform Unpenalized OLS in that they have much lower variance; in other words, they more accurately predict the true 0 betas much more frequently than do does Unpenalized OLS. 
+
+It's also important to note that in this example Ridge does not perform much better than Unpenalized OLS for the non-zero coefficients in terms of variance. This is partly due to the fact that Ridge does not send any coefficients to 0; but it's slighter smaller variance for these parameter estimates is due to the shrinkage introduced by theL1 penalty term.  
 
 Separately, we are interested in the MSE and variance of each $\beta$. below I plot both of these:
 
 ```{r, echo=FALSE}
-fdf <- format_df(df)
+source("analysis_scripts/calculate_beta_MSE.R")
+beta_MSE = calculate_beta_MSE(df)
 
-means <- fdf %>%
-  select(-c("bias", "variance", "mse", "Simulation")) %>% 
-  group_by(Model) %>%
-  dplyr::summarise(across(everything(), .fns = mean, na.rm= TRUE)) 
-
-beta_vars <- fdf %>%
-  group_by(Model) %>%
-  select(-c("bias", "variance", "mse", "Simulation")) %>% 
-  dplyr::summarise(across(everything(), 
-                   .fns = ~ sum((.x-mean(.x))^2)/length(.x) ) ) # We're not using the estimate of population variance here, I believe
-
-
-beta_bias <- sapply(1:nrow(means), function(x){
-  unlist(means[x,-1]) - beta_list}) %>%   
-  t() %>%  
-  cbind(means[,1], . )
-
-beta_mse <- sapply(1:nrow(means), function(x){
-  beta_bias[x, -1]^2 + beta_vars[x, -1]
-  }) %>% 
-  t() %>%  
-  cbind(means[,1], . ) 
-
-beta_mse %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta_num", 
-                     values_to = "value") %>% 
-  separate(beta_num, into = c("junk", "beta_num")) %>% 
-  mutate(beta_num = as.numeric(beta_num)) %>% 
-  mutate(short_model = substr(Model, start = 1, stop = 2)) %>% 
-    arrange(beta_num) %>% 
-  mutate(is_zero = (beta_list[beta_num + 1] == 0)) %>% 
-  ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
+beta_MSE %>% ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
   facet_wrap(vars(beta_num), scales = "free") +
   labs(title = "Mean Squared Error of Regression Coefficient", x = '', y = '', fill = "Is Zero")
-
 ```
 
-
-When evaluating the mean squared error of our estimates of regression coefficients, Elastic Net and LASSO regression tend to have lower MSE for coefficients when they are equal to zero. 
-
 ```{r, echo=FALSE}
-beta_vars %>% tidyr::pivot_longer(cols = colnames(beta_mse)[-1], names_to = "beta_num", 
-                     values_to = "value") %>% 
-  separate(beta_num, into = c("junk", "beta_num")) %>% 
-  mutate(beta_num = as.numeric(beta_num)) %>% 
-  mutate(short_model = substr(Model, start = 1, stop = 2)) %>% 
-  arrange(beta_num) %>% 
-  mutate(is_zero = (beta_list[beta_num + 1] == 0)) %>% 
-  ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
+source("analysis_scripts/calculate_beta_variances.R")
+beta_variances = calculate_beta_variances(df)
+
+beta_variances %>% ggplot() + geom_col(mapping = aes(x = short_model, y = value, fill = is_zero)) +
   facet_wrap(vars(beta_num), scales = "free") + 
   labs(x = '', y = '', title = "Variance of Estimators", fill = "Is Zero")
 ```
 
-The variance in estimates is also much lower for Elastic Net and LASSO regression for zero coefficients, but is comparable to unpenalized regression for non-zero coefficients. 
+When evaluating the mean squared error of our estimates of regression coefficients, Elastic Net and LASSO regression tend to have lower MSE for coefficients when they are equal to zero; this finding is consistent with the boxplots above. Again, MSE is significnatly lower for truly non-zero parameters when estimated with Unpenalized OLS. As for variance, the variance in $\beta$ estimates is much lower for Elastic Net and LASSO regression for zero coefficients, but is comparable to Unpenalized OLS for non-zero coefficients.
 
-We've now reviewed the estimates of the *beta coefficients* relative to their true underlying values. A similar but related question we'd like to answer is how well each model performs at predicting the true underlying *Y values*. In order to do this, we compare models using **out-of-sample MSE** (described above). 
+We've now reviewed the estimates of the *beta coefficients* relative to their true underlying values. A similar but related question we'd like to answer is how well each model performs at predicting the true underlying *Y values*. In order to do this, we compare models using **out-of-sample MSE.** 
 
 To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the **test data** and **modeled coefficients** from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison.
 
-```{r, echo = FALSE}
-df <- read.csv('aggregate_mse_data.csv')
-
-
-df2 <- df %>% pivot_longer(cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"), 
-                           values_to = "MSE", 
-                           names_to = "Model") %>% 
-  dplyr::rename(Small = prop_small )
-```
-
 ```{r, echo=FALSE}
+source("analysis_scripts/calculate_out_of_sample_MSE.R")
+df <- read.csv('data/aggregate_mse_data.csv')
+
+df2 <- df %>% pivot_longer(
+    cols = c("LASSO", "Ridge", "Elastic", "Unpenalized"), 
+    values_to = "MSE", 
+    names_to = "Model"
+  ) %>% 
+    dplyr::rename(Small = prop_small)
 
 df3 = df2 %>% filter(num_obs == 200, sparsity == 0.5, Small == 0)
 ggplot(df3, mapping = aes(col = Model, x = 0, y = log(MSE))) + 
@@ -447,10 +229,12 @@ ggplot(df3, mapping = aes(col = Model, x = 0, y = log(MSE))) +
       axis.text.x=element_blank(),
       axis.ticks.x=element_blank())
 ```
-It is clear that in this setting of relatively high sparsity Elastic Net and LASSO outperform Ridge and un-penalized OLS in terms of out-of-sample MSE. 
 
-Now, let's see how these models perform under different conditions. We will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
+It is clear that in this setting of relatively high sparsity, Elastic Net and LASSO greatly outperform Ridge and un-penalized OLS in terms of out-of-sample MSE. This is because bias introduced by shrinking the non-zero parameters in the penalized models is only a small price to pay for the steep reduction in variance when predicting the truly 0 parameter values. In this setting where there is high sparsity, it is clear that LASSO reigns supreme. 
 
+However, what if there is slightly less sparsity? Or what if the true parameters are non-zero but instead just very small? How does each model perform in this setting. We now proceed to test some of these questions to better understand the trade offs implicit in these penalization methods.
+
+First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
 
 ```{r, echo=FALSE}
 ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
@@ -464,14 +248,14 @@ It is clear that in the very high sparsity setting (i.e., the setting where near
 Now we consider the setting where the non-zero coefficients are close to 0, (i.e., "small"). In this setting, we fix sparsity at [X] and vary the size of non-zero coefficients. We set small coefficients to lie in the range 0.0005-0.005, an we allow the remaining coefficients to lie in the range 0.5-1.5. So for example, in the setting with `small = 0.5`; half of the true non-zero coefficients lie in 0.0005-0.005, and half lie in 0.5-1.5. In this setting, we expect that severe penalization methods like LASSO and Elastic Net will send too many of these coefficients to 0, and the OLS model will overestimate these small true $\beta$s= values. 
 
 ```{r, echo=FALSE}
-ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
+df4 = df2 %>% filter(sparsity == 0.1)
+ggplot(df4, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) + 
   geom_boxplot() +
   facet_grid(rows = vars(Small), labeller = label_both) +
   labs(x = "Number of Observations")
 ```
 
 Indeed, we see that Ridge regression is the highest performing model in this setting, and this is especially true with a lower number of observations. 
-
 
 Below we present results for all 9 combinations of sparsity and coefficient size. 
 
@@ -481,49 +265,6 @@ ggplot(df2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) +
   facet_grid(rows = vars(Small), cols = vars(sparsity), labeller = label_both) +
   labs(x = "Number of Observations")
 ```
-
-As stated in the simulation design portion above, in order to fit our penalization models, we simply used cross validation to select the lambda value associated with the smallest MSE, and then used this lambda value in our final regression fit. A related consideration is to examine results for different levels of `lambda` in LASSO regression, and observe sensitivity of results for this varying levels of lambda.
-
-```{r, echo = FALSE, message = FALSE}
-rm(full_df)
-
-beta_list <- c(2, -1.2, -.7, -.1, .2, .5, 1,0, 0, 0, 0, 0, 0, 0)
-
-for (i in 1:10){
-
-  mat_to_fit <- generate_data(beta_list = beta_list, num_obs = 1000, num_underlying_factors = 1, covariates_per_factor = 4, strength_collinearity = .9)
-  
-  
-  current_lasso <- glmnet::glmnet(y = mat_to_fit[,1], 
-                                  x = mat_to_fit[,2:ncol(mat_to_fit)],
-                                  family = "gaussian",
-                                  alpha = 1 #1 is lasso penalty (0 is ridge)
-                                  )
-  
-  current_df <- current_lasso$beta %>% 
-    t() %>% 
-    as.matrix() %>% 
-    data.frame() %>% 
-    cbind(data.frame(lambda = current_lasso$lambda)) %>% 
-    pivot_longer(., cols = colnames(.)[colnames(.) != "lambda"])
-  
-  current_df$iter = paste(i, current_df$name)
-  
-  if (exists("full_df")){
-    full_df <- rbind(full_df, current_df)
-  }
-  else{
-    full_df <- current_df
-  }
-}
-
-
-  ggplot(data = full_df) +  geom_line(mapping = aes(x = lambda, y = value,group = iter, col = name 
-                                                     ), alpha = .5)
-
-```
-
-As you can see, as the value of lambda increases, as does the penalty applied to the beta coefficients, and for a sufficiently large value of lambda (in this case, about 1.25), all $\beta$ coefficients are sent to 0. Our modeling process selects the level of lamda using 5-fold cross validation such that the out-of-sample MSE (i.e., the MSE in the test sets of the cross validation) is minimized; ideally, this level of lambda will be one where all truly 0 $\beta$ coefficients are sent to 0 and non-zero ones are not.   
 
 ### 4) Summary/Conclusion
 
