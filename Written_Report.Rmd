@@ -4,7 +4,6 @@ author: "Zach Clement, Nona Jiang, Dan Nolte, Willow Duffell, Addison McGhee"
 date: "11/30/2021"
 output:
   html_document: default
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -103,7 +102,7 @@ Ridge Regression is yet another regression model with a penalization element, bu
 $\sum^{n}_{i=1} \big( Y_{i} - \beta_{0} - \sum^{p}_{j=1} \beta_{p}X_{ij} \big)^{2} + \lambda\sum^{p}_{j=1}\beta_{j}^2$
 
 
-$\lambda$ here again is the tuning parameter/shrinking penalty and will shrink the estimates of $\beta$ towards to zero, but will not actually ever set a $\beta$ coefficient to zero. The largest advantage Ride Regression has over Least Squares is in the bias-variance trade-off. As the tuning parameter, $\lamba$, increases, the greater the shrinkage in the model, the lesser amount of flexibility since the $\beta$ coefficients are going towards zero in a somewhat proportional manner. Therefore, we have decreased bias, but an increase in variance. On the other hand, as $\lambda$ decreases, the $\beta$ coefficients goes towards the OLS method which leads to decreased variance but increased bias in the model.  
+$\lambda$ here again is the tuning parameter/shrinking penalty and will shrink the estimates of $\beta$ towards to zero, but will not actually ever set a $\beta$ coefficient to zero. The largest advantage Ride Regression has over Least Squares is in the bias-variance trade-off. As the tuning parameter, $\lambda$, increases, the greater the shrinkage in the model, the lesser amount of flexibility since the $\beta$ coefficients are going towards zero in a somewhat proportional manner. Therefore, we have decreased bias, but an increase in variance. On the other hand, as $\lambda$ decreases, the $\beta$ coefficients goes towards the OLS method which leads to decreased variance but increased bias in the model.  
 
 
 
