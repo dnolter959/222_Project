@@ -17,7 +17,7 @@ prop_coefs_small_levels <- c(0, .5, 1)
 
 # sapply(n_covariates*sparsity_levels, function(x){`*`(x,prop_coefs_small)}) # needs to return whole numbers
 
-small_coefs <- runif(200, min = 0.0005, max = 0.005)
+small_coefs <- runif(200, min = 0.01, max = 0.1)
 medium_coefs <- runif(200, min = 0.5, max = 1.5)
 
 num_obs_vec <-
