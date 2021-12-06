@@ -336,8 +336,8 @@ ggplot(mse_2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) 
 
 ### 5) References
 
-- https://www.xlstat.com/en/solutions/features/ordinary-least-squares-regression-ols
-- Dr. Lake Slides
+- “Ordinary Least Squares Regression (OLS).” XLSTAT by Addinsoft, 2021, https://www.xlstat.com/en/solutions/features/ordinary-least-squares-regression-ols. 
+- "Images and Materials copyright BST 210 HSPH, Erin Lake, and Harvard University"
 - https://www.statisticshowto.com/lasso-regression/
 - Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. J. R. Statist. Soc. B, 58, 267–288.
 - Zou, H., Hastie, T. (2005). Regularization and variable selection via the elastic net. J. R. Statist. Soc. B, 67(2), 301–320.
