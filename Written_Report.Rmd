@@ -57,13 +57,10 @@ $Y_{i} - \hat{Y}_{i} = Y_{i} - (\hat{\beta}_{0} + \hat{B}_{1}X_{i}) = e_{i}$
 
 is minimized over all observations by summing up all the squares of the residuals such that the sum $e^{2}_{1} + e^{2}_{2} + \dots + e^{2}_{n}$ is minimized. 
 
-
 In other words, the ordinary least squares method chooses estimates so that the regression model deviates the least from the data, with no penalty term. 
 
 **Things to note:**
 The outputs of regression for the OLS estimator are unbiased estimators of the different $\beta$ terms. According to the Guass-Markov Theorem, each of the $\hat{\beta}$ variables are unbiased and have minimum variance among all unbiased linear estimators for $\beta$. However this estimator will work best with data with no sparsity and large $\beta$ terms. When we look towards models with more sparsity, OLS may not be the best method to use. 
-
-
 
 ##### Pentalization
 
@@ -71,28 +68,16 @@ Next, we look at other methods that include penalty terms in order to create the
 
 The idea of the penalization methods is that conventional regression is first performed and then the constraint is applied to the model depending on the chosen variable selection model (LASSO, Ridge Regression or Elastic Net).
 
-
 ###### LASSO
 LASSO regression, also known as Least Absolute Shrinkage and Selection Operator is a type of linear regression that uses shrinkage in a model as penalization. The main goal in LASSO regression is to select and eliminate variables by decreasing the beta coefficients to zero. If a variable is not strongly associated with the outcome, the beta coefficent is decreased to zero and is therefore taken out of the model. This regression model can also be seen as a model selection method since the model takes out what is deems as "insignificant predictors". 
-
-
 
 LASSO regression performs L1 regularization, which adds a penalty equal to the absolute value of the magnitude of coefficients. In other words, L1 regularization adopts the constraint that the sum of the absolute-valued regression coefficients must be less than some threshold. The goal of LASSO regression is to minimize:
 
 $\sum^{n}_{i=1} \big( Y_{i} - \beta_{0} - \sum^{p}_{j=1} \beta_{p}X_{ij} \big)^{2} + \lambda\sum^{p}_{j=1}|\beta_{j}|$
 
-
 which is the same as minimizing the sum of squares. The tuning parameter $\lambda$, (either positive or 0) controls the strength of the L1 penalty and therefore the amount of shrinkage in the model. So when $\lambda=0$, LASSO will equal the LSE. However, with this tuning parameter comes a balance of bias and variance. As $\lambda$ increases the bias of the model will increase, but when $\lambda$ decreases, the variance of the model will increase. Since the goal is to have the best predictive model with the least amount of bias and variance, that must be taken into account when choosing the tuning parameter if LASSO regression is chosen as the regression model method.
 
-
-
 *Things to note:* The LASSO method is the preferred method when working with relatively small number of predictors that have a have a substantial effect, and the remaining predictors have coefficients that are very small or to equal zero. Therefore this method will be much more effective with a model with more zero's or sparsity. LASSO regression has many benefits that other methods don't have. This method results in a much simpler model that is much easier to interpret and it removes collinear/multicollinear variables by keeping only one of the correlated terms and eliminating the others. However, in certain settings LASSO regression may be too harsh of a method and may reduce the model by estimating more coefficients than wanted, resulting in a oversimplified model with lost information.
-
-
-
-
-
-
 
 ###### Ridge Regression
 
@@ -104,13 +89,7 @@ $\sum^{n}_{i=1} \big( Y_{i} - \beta_{0} - \sum^{p}_{j=1} \beta_{p}X_{ij} \big)^{
 
 $\lambda$ here again is the tuning parameter/shrinking penalty and will shrink the estimates of $\beta$ towards to zero, but will not actually ever set a $\beta$ coefficient to zero. The largest advantage Ride Regression has over Least Squares is in the bias-variance trade-off. As the tuning parameter, $\lambda$, increases, the greater the shrinkage in the model, the lesser amount of flexibility since the $\beta$ coefficients are going towards zero in a somewhat proportional manner. Therefore, we have decreased bias, but an increase in variance. On the other hand, as $\lambda$ decreases, the $\beta$ coefficients goes towards the OLS method which leads to decreased variance but increased bias in the model.  
 
-
-
 *Things to note:* Ridge Regression has a lot of factors that allow it to work better in specific model cases. Ridge regression will work best when the least squared estimates have high variance, potentially when small changes in the data causes a large change in the least squared estimate. Another instance where ridge regression works well is when the number of covariates is about the same as the number of observations in the data set. Furthermore, this model is preferred when all or most of the predictors are important variables when predicting the outcome, since all the variables will be used in the model. While there are several instances where ridge regression would be the preferred method there are some disadvantages with the model. First, while the penalty term in ridge regression will shrink coefficient estimates towards zero, it will not set any of those estimates to zero. Therefore the final model includes all of the initial predictors which could potentially cause issues with high dimensionality, parsimony, interpretation and the inclusion on collinear terms. 
-
-
-
-
 
 ###### Elastic Net
 
@@ -288,7 +267,7 @@ It is clear that in this setting of relatively high sparsity, Elastic Net and LA
 
 However, what if there is slightly less sparsity? Or what if the true parameters are non-zero but instead just very small? How does each model perform in these settings. We now proceed to test some of these questions to better understand the trade offs implicit in these penalization methods.
 
-First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). A sparsity of 0.1 means that 10% of the true beta coefficients are 0. We will use 100 replications under each condition to conduct estimation, and we will use 20 covariates in each simulation. 
+First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). A sparsity of 0.1 means that 10% of the true beta coefficients are 0. We will use 500 replications under each condition to conduct estimation, and we will use 100 covariates in each simulation. 
 
 ```{r, echo=FALSE}
 mse_2 <- read.csv('data/aggregate_mse_data.csv')
@@ -309,7 +288,7 @@ ggplot(mse_2_fixed_smallness, mapping = aes(col = Model, x = as.factor(num_obs),
   labs(x = "Number of Observations")
 ```
 
-It is clear that in the very high sparsity setting (i.e., the setting where nearly all coefficients are truly 0) we see that the OLS model performs quite poorly compared to the penalization methods (especially when there are fewer observations). A somewhat counter-intuitive finding is that the penalization methods perform quite well on median in the low sparsity setting as well; this can be explained by the fact that in these settings, cross-validation will set the optimal value of $\lambda$ to close to 0. A further question of interest might be to examine model performance for even lower sparsity (or even 0 sparsity), and increase the number of covariates tested from 100 to say, 200; and to compare results.   
+It is clear that in the very high sparsity setting (i.e., the setting where nearly all coefficients are truly 0) we see that the OLS model performs quite poorly compared to the penalization methods (especially when there are fewer observations). A somewhat counter-intuitive finding is that the penalization methods perform quite well on median in the low sparsity setting as well; this can be explained by the fact that in these settings, cross-validation will set the optimal value of $\lambda$ to close to 0. A further question of interest might be to examine model performance for even lower sparsity (or even 0 sparsity), and increase the number of covariates tested from 100 to say, 200; and to compare results.
 
 Now we consider the setting where the non-zero coefficients are close to 0, (i.e., "small"). In this setting, we fix sparsity at 0.1 (i.e., 10 of the 100 parameters are truly 0) and vary the size of non-zero coefficients. We set small coefficients to lie in the range 0.01-0.1, an we allow the remaining coefficients to lie in the range 0.5-1.5. So for example, in the setting with `small = 0.5`; half of the true non-zero coefficients lie in 0.01-0.1, and half lie in 0.5-1.5. In this setting, we expect that severe penalization methods like LASSO and Elastic Net will send too many of these coefficients to 0, and the OLS model will overestimate these small true $\beta$ values. 
 
@@ -331,6 +310,8 @@ ggplot(mse_2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) 
   facet_grid(rows = vars(Small), cols = vars(sparsity), labeller = label_both) +
   labs(x = "Number of Observations")
 ```
+
+Here we see that OLS performs about as well as Elastic Net and LASSO in the low sparsity, low smallness setting, and OLS has especially poor performance, relatively speaking, in the high smallness setting. In each case, higher sample sizes lead to convergence of MSE across the fur models.
 
 ### 4) Summary/Conclusion
 
