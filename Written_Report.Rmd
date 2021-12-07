@@ -3,6 +3,7 @@ title: "BST 222 Final Reoprt"
 author: "Zach Clement, Nona Jiang, Dan Nolte, Willow Duffell, Addison McGhee"
 date: "11/30/2021"
 output:
+  pdf_document: default
   html_document: default
 ---
 
@@ -311,7 +312,7 @@ ggplot(mse_2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) 
   labs(x = "Number of Observations")
 ```
 
-Here we see that OLS performs about as well as Elastic Net and LASSO in the low sparsity, low smallness setting, and OLS has especially poor performance, relatively speaking, in the high smallness setting. In each case, higher sample sizes lead to convergence of MSE across the fur models.
+Here we see that OLS performs about as well as Elastic Net and LASSO in the low sparsity, low smallness setting, and OLS has especially poor performance, relatively speaking, in the high smallness setting. In each case, higher sample sizes lead to convergence of MSE across the four models.
 
 ### 4) Summary/Conclusion
 
