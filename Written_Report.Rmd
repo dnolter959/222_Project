@@ -116,6 +116,7 @@ where $\alpha$ is an additional tuning parameter such that
 Out of Sample MSE:
 To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the test data and *modeled coefficients* from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
 
+testing
 
 #### c) Design of Simulation Study
 
