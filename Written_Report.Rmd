@@ -3,8 +3,8 @@ title: "BST 222 Final Reoprt"
 author: "Zach Clement, Nona Jiang, Dan Nolte, Willow Duffell, Addison McGhee"
 date: "11/30/2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -42,7 +42,7 @@ We will now present the main statistical methods that were utilized in our inves
 - Ridge Regression
 - Elastic-Net
 
-##### No Pentalization
+##### No Penalization
 
 ###### Ordinary Least Squares
 Ordinary Least Squares, or OLS, is a method in linear regression that chooses parameters of a linear model based on a set of explanatory variables based on the principle of least squares. The Least Squares Estimation process is based on the process of minimizing the distance between the actual data responses and the fitted values/residuals of the estimated linear regression line. The line produced by the method of least squares is shown below:
@@ -63,7 +63,7 @@ In other words, the ordinary least squares method chooses estimates so that the 
 **Things to note:**
 The outputs of regression for the OLS estimator are unbiased estimators of the different $\beta$ terms. According to the Guass-Markov Theorem, each of the $\hat{\beta}$ variables are unbiased and have minimum variance among all unbiased linear estimators for $\beta$. However this estimator will work best with data with no sparsity and large $\beta$ terms. When we look towards models with more sparsity, OLS may not be the best method to use. 
 
-##### Pentalization
+##### Penalization
 
 Next, we look at other methods that include penalty terms in order to create the most optimal model. These penalization methods have large benefits that allow for regression models to have the best predictive power by either minimizing the number of covariates or minimizing the weight of the covariates. When there are a large number of covariates in a data set, there may be too many to include in a regression model or not all of the covariates may be the best predictors of the regression. The regression methods below offer different penalization/shrinkage for variable selection below. However, there are some disadvantages to these methods. One being the added difficulty of model interpretation and the largest disadvantage being the presence of bias in exchange for the better predictive model. 
 
@@ -82,7 +82,7 @@ which is the same as minimizing the sum of squares. The tuning parameter $\lambd
 
 ###### Ridge Regression
 
-Ridge Regression is yet another regression model with a penalization element, but it more similar to Least Squares. Ridge regression estimates coefficients of the model by minimizing the SSE but also also constrains the sums of squared coeffiencts. This method incorporates what is known as the L2 penalty which contains the constraint that the sum of the $p^{2}$ regression coefficients must be less than some threshold. This L2 penalty is used to minimize the SSE, as seen below:
+Ridge Regression is yet another regression model with a penalization element, but it more similar to Least Squares. Ridge regression estimates coefficients of the model by minimizing the SSE but also constrains the sums of squared coeffiencts. This method incorporates what is known as the L2 penalty which contains the constraint that the sum of the $p^{2}$ regression coefficients must be less than some threshold. This L2 penalty is used to minimize the SSE, as seen below:
 
 
 $\sum^{n}_{i=1} \big( Y_{i} - \beta_{0} - \sum^{p}_{j=1} \beta_{p}X_{ij} \big)^{2} + \lambda\sum^{p}_{j=1}\beta_{j}^2$
@@ -111,12 +111,13 @@ where $\alpha$ is an additional tuning parameter such that
 
 #### b) Metrics
 
-[I wrote this below in the results section but it might be better suited for here. - Dan.]
+**Mean Square Error (MSE) and Variance of Regression Coefficient**
 
-Out of Sample MSE:
+We calculated the MSE of regession coefficient for each beta coefficients. To calculate this, for each model ran during the simulation, we subtracted estimated betas fromm each respetive true beta parameters. We used the "median" MSE and plotted the beta difference values across all 500 simnulations as box plots. A "median" MSE was used because it is more robust to outliers (extreme observations that occur from chance). The variance of each beta across the 500 simulations were also determined and plotted.
+
+**Out of Sample MSE**
+
 To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we use the test data and *modeled coefficients* from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
-
-testing
 
 #### c) Design of Simulation Study
 
@@ -192,6 +193,16 @@ As for selecting the lambda level, used 5-fold cross validation across many leve
 cv.glmnet(y = data$Y, x = as.matrix(data[,2:ncol(data)]),
           nfolds = 5, family = "gaussian", alpha = alpha) %>% .$lambda.min
 ```
+
+**Step 2a: Simulation at Varying Sparsity Levels, Sample Sizes, and Coefficient Sizes**
+
+To answer the questions of how each model performs at varying levels of sparsity in the model, sample sizes, and coefficient sizes (specifically when the true parameters are non-zero but instead very small) we ran a series of additional simulations as described
+
+To evaluate the prediction MSE for each model under different levels of sparsity and at different sample sizes, we repeated the simulation as described above for varying sparsity levels (.1, .5, and .98), with these values representing the percentage of the true beta coefficients being zero. We also repeated the simulation for each level of sparsity at different sample sizes (200, 800, 1600). We will used 500 replications under each condition to conduct the estimation, using 100 covariates in each simulation.
+
+To evaluate the effect of small coefficient sizes on the performance of each model, we set sparsity fixed at 0.1 and varied the size of non-zero coefficients. We set small coefficients to lie in the range 0.01-0.1, and we allow the remaining coefficients to lie in the range 0.5-1.5. For example, in the setting with small = 0.5; half of the true non-zero coefficients lie in 0.01-0.1, and half lie in 0.5-1.5. 
+
+Finally, we ran the simulation for all 9 different combinations of sparsity (0.1, 0.5, 0.98) and coefficient sizes (small = 0, 0.5, 1) as described above.
 
 ### 3) Results
 
@@ -269,7 +280,7 @@ It is clear that in this setting of relatively high sparsity, Elastic Net and LA
 
 However, what if there is slightly less sparsity? Or what if the true parameters are non-zero but instead just very small? How does each model perform in these settings. We now proceed to test some of these questions to better understand the trade offs implicit in these penalization methods.
 
-First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (20, 100, 500). A sparsity of 0.1 means that 10% of the true beta coefficients are 0. We will use 500 replications under each condition to conduct estimation, and we will use 100 covariates in each simulation. 
+First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (200, 800, 1600). A sparsity of 0.1 means that 10% of the true beta coefficients are 0. We will use 500 replications under each condition to conduct estimation, and we will use 100 covariates in each simulation. 
 
 ```{r, echo=FALSE}
 mse_2 <- read.csv('data/aggregate_mse_data.csv')
@@ -316,6 +327,26 @@ ggplot(mse_2, mapping = aes(col = Model, x = as.factor(num_obs), y = log(MSE))) 
 Here we see that OLS performs about as well as Elastic Net and LASSO in the low sparsity, low smallness setting, and OLS has especially poor performance, relatively speaking, in the high smallness setting. In each case, higher sample sizes lead to convergence of MSE across the four models.
 
 ### 4) Summary/Conclusion
+
+In conclusion, through our study we found that:
+
+Main findings:
+- For non-zero beta coefficients, LASSO, Ridge, and Elastic Net underestimate (in absolute value terms) the true paramter while the unpenalized model is unbiased
+  0 using penalization methods such as LASSO, Ridge, and Elastic Net, while powerful, introduce biased when predicting relatively "large" paramter values and hsould be used with care
+
+- For beta coefficients that are zero, the penalization methods (LASSO, Ridge, and Elastic Net) outperformed the unpenalized OLS in that they haev nuch lower variance and more accurately predict the true 0 betas
+
+- For true 0 betas, Elastic Net and LASSO regression have lower MSE for coefficients as compared with unpenalized OLS
+- For true 0 betas, the variance in beta estimates is much lower for Elastinet Net and LASSO but is comparable to unpenalized OLS for non-zero coefficients.
+
+- In this setting of relatively high sparsity, Elastic Net and LASSO outperform Ridge and un-penalized OLS in terms of out-of-sample MSE
+   This is because bias introduced by shrinking the non-zero parameters in the penalized models is only a small price to pay for the steep reduction in variance when predicting the truly 0 parameter values. In this setting where there is high sparsity, it is clear that LASSO reigns supreme.
+
+- In high sparsity settings (spasity at 0.98), the unpenalized OLS model performs poorly relative to the penalization methods especially when n is small. 
+
+- When non-zero coefficients are close to 0, (i.e., “small”), at a fixed sparsity of 0.1, and vary the size of non-zero coefficients. We set small coefficients to lie in the range 0.01-0.1, an we allow the remaining coefficients to lie in the range 0.5-1.5, we find that Ridge regression is the highest perofming model in the setting of high smallness especialyl with lower observations. As sparsity increases, LASSO and Elastic Net perofmr as well or better than Ridge
+
+Here we see that OLS performs about as well as Elastic Net and LASSO in the low sparsity, low smallness setting, and OLS has especially poor performance, relatively speaking, in the high smallness setting. In each case, higher sample sizes lead to convergence of MSE across the four models.
 
 ### 5) References
 
