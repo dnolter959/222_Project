@@ -1,10 +1,10 @@
 ---
-title: "BST 222 Final Reoprt"
+title: "BST 222 Final Report"
 author: "Zach Clement, Nona Jiang, Dan Nolte, Willow Duffell, Addison McGhee"
 date: "11/30/2021"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -18,6 +18,8 @@ library(knitr)
 library(dplyr)
 library(glmnet)
 ```
+
+## Comparing LASSO to Other Regression Methods in the Presence of Sparsity and Small Effect Sizes
 
 ### I) Introduction
 The purpose of this study is to examine the impacts of a phenomenon in regression analysis and prediction known as “sparsity”. In plain English, the term sparsity refers to the state of being thinly scattered or distributed. This definition has clear connections to sparsity in a regression model, which we will consider as the percent of true coefficients that are exactly equal to zero. Having high sparsity implies that the model under consideration has many predictors that are not impactful and could therefore be discarded to achieve a more parsimonious, or simple relationship with the outcome. In real world applications, it is often advantageous to obtain a model that has fewer predictors as this allows for ease of interpretation and stronger effects from each individual covariate. For example, in the case of genomics research, a setting where the number of predictors far exceeds the sample size, the number of meaningful (non-zero) features in the data cannot be discerned using the traditional Ordinary Least Squares approach. Even the elegant regularization procedure of Ridge regression is unable to remove parameters since it only reduces the magnitude of coefficients, and thus does not force them to zero.
@@ -326,27 +328,19 @@ Here we see that OLS performs about as well as Elastic Net and LASSO in the low 
 
 ### 4) Summary/Conclusion
 
-In conclusion, through our study we found that:
+In conclusion, in our study we ran several simulations to answer the questions of how sparsity impacts the MSE of unpenalized OLS versus penalized (LASSO, Ridge, Elastic Net) models. Our overarching finding is that in settings of high sparsity, penalized methods outperform the traditional unpenalized OLS, specifically with LASSO reigning supreme. Our project highlights the utility of using LASSO under situations of high sparsity. Many fields in biology and medicine have many predictors that are often highly correlated including but not limited to studies in genomics, cell signaling, and immunology. Thus, identifying a model that is able to account for situations of high sparsity is paramount and has many implications for biological research.
 
-Main findings:
-- For non-zero beta coefficients, LASSO, Ridge, and Elastic Net underestimate (in absolute value terms) the true paramter while the unpenalized model is unbiased
-  0 using penalization methods such as LASSO, Ridge, and Elastic Net, while powerful, introduce biased when predicting relatively "large" paramter values and hsould be used with care
+We found that with non-zero beta coefficients, the penalized models underestimate the true parameter while the unpenalized OLS remains unbiased. This finding highlights the idea that while penalization methods such as LASSO, Ridge, and Elastic Net are powerful in the correct setting, they do introduce bias when predicting relatively "large" parameter values and should be used appropriately. Conversely, for true zero betas, the penalization methods outperformed the unpenalized OLS in that these models displayed lower variance and more accurately predicted the true zero betas with Elastic Net and LASSO having the lowest MSE for the coefficients.
 
-- For beta coefficients that are zero, the penalization methods (LASSO, Ridge, and Elastic Net) outperformed the unpenalized OLS in that they haev nuch lower variance and more accurately predict the true 0 betas
+Furthermore, in settings of high sparsity, Elastic Net and LASSO also outperform the other two models in terms of out-of-sample MSE. In these settings, the bias introduced by shrinking the non-zero parameters in the penalized models becomes a relatively small price to pay for the steep reduction in variance when predicting the truly zero parameter values. In these settings of high sparsity is where the merits of LASSO truly shine and reign supreme. These findings are recapitulated when a series of simulations were repeated with varying degrees of sparsity and sample sizes, with LASSO performing well in settings of high sparsity, high smallness, and high sample sizes.
 
-- For true 0 betas, Elastic Net and LASSO regression have lower MSE for coefficients as compared with unpenalized OLS
-- For true 0 betas, the variance in beta estimates is much lower for Elastinet Net and LASSO but is comparable to unpenalized OLS for non-zero coefficients.
+Together our simulation findings suggest that in settings of high sparsity and high sample sizes, LASSO is a powerful model to obtain a parsimonious model. Our findings highlight the ability of LASSO to be applied to many fields across biology and medicine where the number of predictors far exceeds the sample size. 
 
-- In this setting of relatively high sparsity, Elastic Net and LASSO outperform Ridge and un-penalized OLS in terms of out-of-sample MSE
-   This is because bias introduced by shrinking the non-zero parameters in the penalized models is only a small price to pay for the steep reduction in variance when predicting the truly 0 parameter values. In this setting where there is high sparsity, it is clear that LASSO reigns supreme.
+### 5) Acknowledgements
 
-- In high sparsity settings (spasity at 0.98), the unpenalized OLS model performs poorly relative to the penalization methods especially when n is small. 
+We would like to acknowledge the entire BST 222 Fall 2021 teaching team at Harvard T.H. Chan School of Public Health. In particular, we would like to thank Professor Rui Duan for all her wonderful teaching and the opportunity to perform and learn from this simulation study. We extend special appreciation to Larry Han who has provided not only support throughout the BST 222 course, but also took time to offer invaluable advice and mentorship to our team on this project.
 
-- When non-zero coefficients are close to 0, (i.e., “small”), at a fixed sparsity of 0.1, and vary the size of non-zero coefficients. We set small coefficients to lie in the range 0.01-0.1, an we allow the remaining coefficients to lie in the range 0.5-1.5, we find that Ridge regression is the highest perofming model in the setting of high smallness especialyl with lower observations. As sparsity increases, LASSO and Elastic Net perofmr as well or better than Ridge
-
-Here we see that OLS performs about as well as Elastic Net and LASSO in the low sparsity, low smallness setting, and OLS has especially poor performance, relatively speaking, in the high smallness setting. In each case, higher sample sizes lead to convergence of MSE across the four models.
-
-### 5) References
+### 6) References
 
 - “Ordinary Least Squares Regression (OLS).” XLSTAT by Addinsoft, 2021, https://www.xlstat.com/en/solutions/features/ordinary-least-squares-regression-ols. 
 - "Images and Materials copyright BST 210 HSPH, Erin Lake, and Harvard University"
