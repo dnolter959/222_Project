@@ -3,8 +3,8 @@ title: "BST 222 Final Report"
 author: "Zach Clement, Nona Jiang, Dan Nolte, Willow Duffell, Addison McGhee"
 date: "11/30/2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -336,7 +336,7 @@ Furthermore, in settings of high sparsity, Elastic Net and LASSO also outperform
 
 Together our simulation findings suggest that in settings of high sparsity and high sample sizes, LASSO is a powerful model to obtain a parsimonious model. Our findings highlight the ability of LASSO to be applied to many fields across biology and medicine where the number of predictors far exceeds the sample size. 
 
-### 5) Acknowledgements
+### 5) Acknowledgments
 
 We would like to acknowledge the entire BST 222 Fall 2021 teaching team at Harvard T.H. Chan School of Public Health. In particular, we would like to thank Professor Rui Duan for all her wonderful teaching and the opportunity to perform and learn from this simulation study. We extend special appreciation to Larry Han who has provided not only support throughout the BST 222 course, but also took time to offer invaluable advice and mentorship to our team on this project.
 
