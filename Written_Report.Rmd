@@ -91,7 +91,7 @@ Ridge Regression is yet another regression model with a penalization element, bu
 $\sum^{n}_{i=1} \big( Y_{i} - \beta_{0} - \sum^{p}_{j=1} \beta_{p}X_{ij} \big)^{2} + \lambda\sum^{p}_{j=1}\beta_{j}^2$
 
 
-$\lambda$ here again is the tuning parameter/shrinking penalty and will shrink the estimates of $\beta$ towards to zero, but will not actually ever set a $\beta$ coefficient to zero. The largest advantage Ride Regression has over Least Squares is in the bias-variance trade-off. As the tuning parameter, $\lambda$, increases, the greater the shrinkage in the model, the lesser amount of flexibility since the $\beta$ coefficients are going towards zero in a somewhat proportional manner. Therefore, we have decreased bias, but an increase in variance. On the other hand, as $\lambda$ decreases, the $\beta$ coefficients goes towards the OLS method which leads to decreased variance but increased bias in the model.  
+$\lambda$ here again is the tuning parameter/shrinking penalty and will shrink the estimates of $\beta$ towards to zero, but will not actually ever set a $\beta$ coefficient to zero. The largest advantage Ride Regression has over Least Squares is in the bias-variance trade-off. As the tuning parameter, $\lambda$, increases, the greater the shrinkage in the model, the lesser amount of flexibility since the $\beta$ coefficients are going towards zero in a somewhat proportional manner. Therefore, we have decreased variance, but increased variance. On the other hand, as $\lambda$ decreases, estimated $\beta$ coefficients are closer to those from OLS method which leads to less bias but more variance in these estimates.  
 
 *Things to note:* Ridge Regression has a lot of factors that allow it to work better in specific model cases. Ridge regression will work best when the least squared estimates have high variance, potentially when small changes in the data causes a large change in the least squared estimate. Another instance where ridge regression works well is when the number of covariates is about the same as the number of observations in the data set. Furthermore, this model is preferred when all or most of the predictors are important variables when predicting the outcome, since all the variables will be used in the model. While there are several instances where ridge regression would be the preferred method there are some disadvantages with the model. First, while the penalty term in ridge regression will shrink coefficient estimates towards zero, it will not set any of those estimates to zero. Therefore the final model includes all of the initial predictors which could potentially cause issues with high dimensionality, parsimony, interpretation and the inclusion on collinear terms. 
 
@@ -103,7 +103,8 @@ Due to criticisms of the other penalization methods, elastic net regression was 
 $\frac{1}{2n}\sum^{n}_{i=1} \big( Y_{i} - X_{i}\hat{\beta} \big)^{2} +  \lambda \big( \frac{1-\alpha}{2}\sum^{p}_{j=1}\beta_{j}^2 + \alpha \sum^{p}_{j=1}|\hat{\beta}_{j}|\big)$
 
 
-where $\alpha$ is an additional tuning parameter such that
+where $\alpha$ is an additional tuning parameter such that:
+
 * if $\alpha = 0$, the regression approach becomes ridge regression
 * if $\alpha = 1$, the regression approach becomes LASSO regression
 * if $\alpha \in (0,1)$, the regression approach is Elastic Net regression
