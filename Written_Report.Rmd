@@ -120,7 +120,7 @@ In order to evaluate the performance of our simulations at predicting the true $
 
 **Out of Sample MSE**
 
-To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we used the **test data** and *modeled coefficients* from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
+To calculate out-of-sample MSE, we take each model fit and compare true $Y$ value to predicted $\hat{Y}$ values, and compute $\frac{\sum_{i = 1}^{n}{(Y_i - \hat{Y_i})^2}}{n}$, in the typical way. However, crucially, we do not calculate this MSE on the same data that was used to fit the model. Instead, we generate a new random data sample, call it test data, and calculate associated true ${Y}$ values using this new sample and the true beta coefficients. Then we used the **test data** and **modeled coefficients** from the original sample to generate predicted ${\hat{Y}}$ values. Then we evaluate prediction error on the test data, instead of the data that was itself used to generate the $\beta$ estimates. We do this because we cannot accurately assess prediction error by testing our model on our training set. For example, the OLS model is constructed to select the $\beta$ estimates which will yield the minimum squared error. This means our MSE will be as small as possible in the OLS model - but this says nothing about how this model can be used for inference with a new dataset. Out-of-sample MSE avoids this problems and allows us to make a fair model comparison. 
 
 #### c) Design of Simulation Study
 
@@ -141,7 +141,7 @@ Next, we generate a random dataset, and then run our 4 models of interest (Unpen
 
 **Step 1a: Generating random data**
 
-In order to generate our random dataset we choose a sample size of 300, and sample from a standard normal distribution for every coviariate value for each of the 300 observations. Again, every single value of every covariate is sampled from the exact same standard normal distribution. We do this to introduce randomness into the data generating process while still adhering to the normality and equal variance assumptions required by the estimation procedures we wish to test. The head of this data frame looks like this:
+In order to generate our random dataset we choose a sample size of 300, and sample from a standard normal distribution for every coviariate value for each of the 300 observations. Again, every single value of every covariate is sampled from the exact same standard normal distribution. The head of this data frame looks like this:
 
 ```{r, echo=FALSE}
 beta_list <- c(2,  1, .5, -.5, 0, 0, 0, 0, 0, 0, 0)
@@ -209,7 +209,7 @@ Finally, we ran the simulation for all 9 different combinations of sparsity (0.1
 
 ### 3) Results
 
-Below are a series of boxplots which show the distribution of point estimates for each of the 11 $\beta$ parameters. Recall that for the simulation study we set $\beta_0 = 2$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\beta_3 = -0.5$, and $\beta_4 = \beta_5 = ... = \beta_9 = \beta_{10} = 0$. In this setting we set n = 300, and run each model 500 times. 
+Below are a series of boxplots which show the distribution of point estimates for each of the 11 $\beta$ parameters in our original simulation Recall that for the simulation study we set $\beta_0 = 2$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\beta_3 = -0.5$, and $\beta_4 = \beta_5 = ... = \beta_9 = \beta_{10} = 0$. In this setting we set n = 300, and run each model 500 times. 
 
 ```{r, echo=FALSE}
 # Load Simulation Functions
@@ -233,9 +233,9 @@ plot_all_beta(df, beta_list)
 
 We can see from the boxplots of the beta coefficients that LASSO, Ridge, and elastic net tend to underestimate (in absolute value terms) the true parameter, while the unpenalized model is unbiased.  This jibes with our expectation, as the penalization methods are shrinking the truly non-zero coefficients (often all the way to 0 in the case of LASSO), and in so doing are introducing bias in exchange for smaller variance. The clear superiority of Unpenalized OLS on predicting $\beta_1$, $\beta_2$, and $\beta_3$ should serve as a cautionary tale that these penalization methods, while powerful, certainty introduce bias when predicting relatively "large" parameter values and should be used with care.
 
-On the other hand, when parameters are truly zero, -- despite the fact that Unpeanlized OLS have very low bias in these cases -- the penalization methods outperform Unpenalized OLS in that they have much lower variance; in other words, they more accurately predict the true 0 betas much more frequently than do does Unpenalized OLS. 
+On the other hand, when parameters are truly zero, -- despite the fact that Unpeanlized OLS parameters are unbiased in these cases -- the penalization methods outperform Unpenalized OLS in that they have much lower variance; in other words, they more accurately predict the true 0 betas much more frequently than do does Unpenalized OLS. 
 
-It's also important to note that in this example Ridge does not perform much better than Unpenalized OLS for the non-zero coefficients in terms of variance. This is partly due to the fact that Ridge does not send any coefficients to 0; but it's slighter smaller variance for these parameter estimates is due to the shrinkage introduced by theL1 penalty term.  
+It's also important to note that in this example Ridge does not perform much better than Unpenalized OLS for the non-zero coefficients in terms of variance. This is partly due to the fact that Ridge does not send any coefficients to 0; but it's slighter smaller variance for these parameter estimates is due to the shrinkage introduced by the L1 penalty term.  
 
 Separately, we are interested in the MSE and variance of each $\beta$. below I plot both of these:
 
@@ -281,7 +281,7 @@ It is clear that in this setting of relatively high sparsity, Elastic Net and LA
 
 However, what if there is slightly less sparsity? Or what if the true parameters are non-zero but instead just very small? How does each model perform in these settings. We now proceed to test some of these questions to better understand the trade offs implicit in these penalization methods.
 
-First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (200, 800, 1600). A sparsity of 0.1 means that 10% of the true beta coefficients are 0. We will use 500 replications under each condition to conduct estimation, and we will use 100 covariates in each simulation. 
+First, we will evaluate the prediction MSE for each model under different levels of sparsity (.1, .5, and .98), and at different sample sizes (200, 800, 1600). A sparsity of 0.1 means that 10% of the true beta coefficients are 0, for example. We will use 500 replications under each condition to conduct estimation, and we will use 100 covariates in each simulation. 
 
 ```{r, echo=FALSE}
 mse_2 <- read.csv('data/aggregate_mse_data.csv')
@@ -329,13 +329,13 @@ Here we see that OLS performs about as well as Elastic Net and LASSO in the low 
 
 ### 4) Summary/Conclusion
 
-In conclusion, in our study we ran several simulations to answer the questions of how sparsity impacts the MSE of unpenalized OLS versus penalized (LASSO, Ridge, Elastic Net) models. Our overarching finding is that in settings of high sparsity, penalized methods outperform the traditional unpenalized OLS, specifically with LASSO reigning supreme. Our project highlights the utility of using LASSO under situations of high sparsity. Many fields in biology and medicine have many predictors that are often highly correlated including but not limited to studies in genomics, cell signaling, and immunology. Thus, identifying a model that is able to account for situations of high sparsity is paramount and has many implications for biological research.
+In conclusion, in our study we ran several simulations to answer the questions of how sparsity impacts the MSE of unpenalized OLS versus penalized (LASSO, Ridge, Elastic Net) models. Our overarching finding is that in settings of high sparsity, penalized methods outperform the traditional unpenalized OLS, with LASSO performing best. Our project highlights the utility of using LASSO under situations of high sparsity. Many fields in biology and medicine have many predictors that are often highly correlated including but not limited to studies in genomics, cell signaling, and immunology. Thus, identifying a model that is able to account for situations of high sparsity is paramount and has many implications for biological research.
 
 We found that with non-zero beta coefficients, the penalized models underestimate the true parameter while the unpenalized OLS remains unbiased. This finding highlights the idea that while penalization methods such as LASSO, Ridge, and Elastic Net are powerful in the correct setting, they do introduce bias when predicting relatively "large" parameter values and should be used appropriately. Conversely, for true zero betas, the penalization methods outperformed the unpenalized OLS in that these models displayed lower variance and more accurately predicted the true zero betas with Elastic Net and LASSO having the lowest MSE for the coefficients.
 
-Furthermore, in settings of high sparsity, Elastic Net and LASSO also outperform the other two models in terms of out-of-sample MSE. In these settings, the bias introduced by shrinking the non-zero parameters in the penalized models becomes a relatively small price to pay for the steep reduction in variance when predicting the truly zero parameter values. In these settings of high sparsity is where the merits of LASSO truly shine. These findings are recapitulated when a series of simulations were repeated with varying degrees of sparsity and sample sizes, with LASSO performing well in settings of high sparsity, high smallness, and high sample sizes.
+Furthermore, in settings of high sparsity, Elastic Net and LASSO also outperform the other two models in terms of out-of-sample MSE. In these settings, the bias introduced by shrinking the non-zero parameters in the penalized models becomes a relatively small price to pay for the steep reduction in variance when predicting the truly zero parameter values. In these settings of high sparsity is where the merits of LASSO truly shine. These findings are recapitulated when a series of simulations were repeated with varying degrees of sparsity and sample sizes. And when considering a setting of high "smallness," we find that Ridge regression outperforms the other models. Finally, we observe a convergence in MSE for each of the 4 models (no matter the sparsity and smallness conditions) as sample size increases.
 
-Together our simulation findings suggest that in settings of high sparsity and high sample sizes, LASSO is a powerful model to obtain a parsimonious model. Our findings highlight the ability of LASSO to be applied to many fields across biology and medicine where the number of predictors far exceeds the sample size. 
+Together our simulation findings suggest that in settings of high sparsity , LASSO is a powerful way to obtain a parsimonious model. Our findings highlight the ability of LASSO to be applied to many fields, for example biology and medicine, where the number of predictors is large relative to the sample size. 
 
 ### 5) Acknowledgments
 
